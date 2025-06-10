@@ -1,4 +1,4 @@
-console.log('Rhythm Game loaded');const canvas = document.getElementById('gameCanvas');
+const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 
 let noteY = 0;
@@ -13,7 +13,7 @@ function draw() {
     // ノーツを落とす
     noteY += 5;
     if (noteY > canvas.height) {
-        noteY = 0; // リセットして上から再出現
+        noteY = 0; // 画面下まで行ったらリセット
     }
 
     requestAnimationFrame(draw);

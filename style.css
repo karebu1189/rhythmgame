@@ -1,1 +1,13 @@
-body { font-family: sans-serif; text-align: center; background-color: #000; color: #fff; }
+body { font-family: sans-seribody {
+    font-family: sans-serif;
+    text-align: center;
+    background-color: #000;
+    color: #fff;
+}
+
+canvas {
+    background-color: #222;
+    display: block;
+    margin: 0 auto;
+}
+f; text-align: center; background-color: #000; color: #fff; }

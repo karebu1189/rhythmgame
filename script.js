@@ -102,5 +102,21 @@ if (keyIndex !== -1) {
     }
 }
         requestAnimationFrame(draw);
-    }
+    }ctx.fillStyle = 'white';
+notes.forEach(note => {
+    ctx.fillRect(note.x, note.y, 50, 50);
+    note.y += 5;
+});
+
+// レーンキー表示
+ctx.fillStyle = 'yellow';
+lanes.forEach((lane, index) => {
+    ctx.fillText(laneKeys[index], lane - 5, canvas.height - 10);
+});
+
+notes = notes.filter(note => note.y <= canvas.height + 50);
+
+if (gameRunning) {
+    requestAnimationFrame(draw);
+}
 }

@@ -6,7 +6,6 @@ const startScreen = document.getElementById('startScreen');
 const gameScreen = document.getElementById('gameScreen');
 const startButton = document.getElementById('startButton');
 const retryButton = document.getElementById('retryButton');
-const scoreDisplay = document.getElementById('score');
 const bgm = document.getElementById('bgm');
 const difficultySelector = document.getElementById('difficultySelector');
 const laneSelector = document.getElementById('laneSelector');
@@ -21,7 +20,7 @@ let difficulty = 'normal';
 let spawnInterval;
 let effects = [];
 
-const keyMapping = ['D', 'F', 'G', 'J', 'K', 'L']; // キー配置を固定
+const keyMapping = ['D', 'F', 'G', 'J', 'K', 'L'];
 const difficulties = {
     easy: { noteSpeed: 3, spawnRate: 800 },
     normal: { noteSpeed: 5, spawnRate: 600 },
@@ -30,6 +29,14 @@ const difficulties = {
 
 let noteSpeed = difficulties[difficulty].noteSpeed;
 let noteSpawnRate = difficulties[difficulty].spawnRate;
+
+// 全画面対応
+function resizeCanvas() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+}
+window.addEventListener('resize', resizeCanvas);
+resizeCanvas();
 
 function initializeLanes(count) {
     lanes = [];
@@ -40,7 +47,7 @@ function initializeLanes(count) {
 
     for (let i = 0; i < count; i++) {
         lanes.push(startX + i * laneWidth);
-        laneKeys.push(keyMapping[i]); // 固定キー割り当て
+        laneKeys.push(keyMapping[i]);
     }
 }
 
@@ -90,7 +97,6 @@ canvas.addEventListener('click', function (event) {
         if (clickX >= note.x && clickX <= note.x + 50 && clickY >= note.y && clickY <= note.y + 50) {
             notes.splice(i, 1);
             score += 100;
-            scoreDisplay.innerText = score;
             effects.push({ x: note.x, y: note.y, timer: 15 });
             break;
         }
@@ -107,7 +113,6 @@ window.addEventListener('keydown', function (event) {
             if (note.laneIndex === keyIndex && note.y >= canvas.height - 100 && note.y <= canvas.height - 20) {
                 notes.splice(i, 1);
                 score += 100;
-                scoreDisplay.innerText = score;
                 effects.push({ x: note.x, y: note.y, timer: 15 });
                 break;
             }
@@ -147,6 +152,11 @@ function draw() {
         if (effect.timer <= 0) effects.splice(index, 1);
     });
 
+    // キャンバス内にスコア表示
+    ctx.fillStyle = 'white';
+    ctx.font = '24px Arial';
+    ctx.fillText('Score: ' + score, 20, 40);
+
     notes = notes.filter(note => note.y <= canvas.height + 50);
 
     if (gameRunning) {
@@ -166,7 +176,6 @@ canvas.addEventListener('touchstart', function (event) {
         if (touchX >= note.x && touchX <= note.x + 50 && touchY >= note.y && touchY <= note.y + 50) {
             notes.splice(i, 1);
             score += 100;
-            scoreDisplay.innerText = score;
             effects.push({ x: note.x, y: note.y, timer: 15 });
             break;
         }
@@ -182,14 +191,6 @@ function setDifficulty(newDifficulty) {
 function setLaneCount(newCount) {
     laneCount = newCount;
 }
-// キャンバスを画面サイズに自動調整する
-function resizeCanvas() {
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-}
-
-window.addEventListener('resize', resizeCanvas);
-resizeCanvas(); // ページ読み込み時にも実行
 
 initializeLanes(laneCount);
 

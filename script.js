@@ -1,22 +1,74 @@
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
+const startScreen = document.getElementById('startScreen');
+const gameScreen = document.getElementById('gameScreen');
+const startButton = document.getElementById('startButton');
+const retryButton = document.getElementById('retryButton');
+const scoreDisplay = document.getElementById('score');
+const bgm = document.getElementById('bgm');
 
-let noteY = 0;
+let lanes = [50, 150, 250, 350, 450, 550];
+let notes = [];
+let score = 0;
+let gameRunning = false;
+
+startButton.onclick = () => {
+    startScreen.style.display = 'none';
+    gameScreen.style.display = 'block';
+    startGame();
+};
+
+retryButton.onclick = () => {
+    location.reload();
+};
+
+function startGame() {
+    bgm.play();
+    gameRunning = true;
+    score = 0;
+    notes = [];
+
+    // ノーツを定期的に出現させる
+    setInterval(() => {
+        if (gameRunning) {
+            let lane = lanes[Math.floor(Math.random() * lanes.length)];
+            notes.push({ x: lane - 25, y: 0 });
+        }
+    }, 600);
+
+    draw();
+}
+
+canvas.addEventListener('click', function (event) {
+    if (!gameRunning) return;
+
+    const rect = canvas.getBoundingClientRect();
+    const clickX = event.clientX - rect.left;
+    const clickY = event.clientY - rect.top;
+
+    for (let i = 0; i < notes.length; i++) {
+        let note = notes[i];
+        if (clickX >= note.x && clickX <= note.x + 50 && clickY >= note.y && clickY <= note.y + 50) {
+            notes.splice(i, 1);
+            score += 100;
+            scoreDisplay.innerText = score;
+            break;
+        }
+    }
+});
 
 function draw() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    // ノーツ（白い四角）を描画
     ctx.fillStyle = 'white';
-    ctx.fillRect(canvas.width / 2 - 25, noteY, 50, 50);
+    notes.forEach(note => {
+        ctx.fillRect(note.x, note.y, 50, 50);
+        note.y += 5;
+    });
 
-    // ノーツを落とす
-    noteY += 5;
-    if (noteY > canvas.height) {
-        noteY = 0; // 画面下まで行ったらリセット
+    notes = notes.filter(note => note.y <= canvas.height + 50);
+
+    if (gameRunning) {
+        requestAnimationFrame(draw);
     }
-
-    requestAnimationFrame(draw);
 }
-
-draw();

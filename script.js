@@ -1,3 +1,8 @@
+// 完全修正版プロセカ風リズムゲームコード
+
+// DOMContentLoaded イベント
+// 全体処理をラップ
+
 document.addEventListener('DOMContentLoaded', () => {
     const titleScreen = document.getElementById('titleScreen');
     const gameScreen = document.getElementById('gameScreen');
@@ -21,7 +26,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const backButton = document.getElementById('backButton');
     const backButtonResult = document.getElementById('backButtonResult');
 
-    // 曲データ
     const songs = [
         { title: 'メデ', file: 'メデ.mp3' },
         { title: '曲2', file: 'df327b38-4181-4d81-b13f-a4490a28cbf1.mp3' }
@@ -46,10 +50,8 @@ document.addEventListener('DOMContentLoaded', () => {
     let noteSpeed = difficulties.normal.noteSpeed;
     let noteSpawnRate = difficulties.normal.spawnRate;
 
-    // パーティクル用配列
     let particles = [];
 
-    // Canvasサイズ調整関数
     function resizeCanvas() {
         canvas.width = window.innerWidth;
         canvas.height = window.innerHeight;
@@ -58,7 +60,6 @@ document.addEventListener('DOMContentLoaded', () => {
     window.addEventListener('resize', resizeCanvas);
     resizeCanvas();
 
-    // 曲リスト表示
     function refreshSongList() {
         songList.innerHTML = '';
         songs.forEach(song => {
@@ -95,6 +96,7 @@ document.addEventListener('DOMContentLoaded', () => {
         notes = [];
         judgeEffects = [];
     };
+
     backButton.onclick = () => {
         gameRunning = false;
         clearInterval(spawnInterval);
@@ -103,6 +105,7 @@ document.addEventListener('DOMContentLoaded', () => {
         gameScreen.style.display = 'none';
         titleScreen.style.display = 'flex';
     };
+
     backButtonResult.onclick = () => {
         resultScreen.style.display = 'none';
         titleScreen.style.display = 'flex';
@@ -119,7 +122,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // パーティクル初期化・生成
     function createParticle() {
         return {
             x: Math.random() * canvas.width,
@@ -138,7 +140,6 @@ document.addEventListener('DOMContentLoaded', () => {
             particles.push(createParticle());
         }
     }
-    initParticles();
 
     function updateParticles() {
         particles.forEach(p => {
@@ -160,23 +161,19 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     class Note {
-        constructor(laneIndex, timeToReach) {
+        constructor(laneIndex) {
             this.lane = laneIndex;
             this.x = lanes[laneIndex];
             this.y = -20;
             this.speed = noteSpeed;
-            this.hit = false;
-            this.timeToReach = timeToReach; 
             this.judged = false;
         }
 
         update() {
             this.y += this.speed;
-            if (this.y > canvas.height + 20) {
-                if (!this.judged) {
-                    this.judged = true;
-                    this.miss();
-                }
+            if (this.y > canvas.height + 20 && !this.judged) {
+                this.miss();
+                this.judged = true;
             }
         }
 
@@ -193,6 +190,7 @@ document.addEventListener('DOMContentLoaded', () => {
         miss() {
             combo = 0;
             missSound.play();
+            judgeEffects.push(new JudgeEffect(this.x, this.y, 'MISS', 'red'));
         }
     }
 
@@ -235,15 +233,12 @@ document.addEventListener('DOMContentLoaded', () => {
         initParticles();
         initializeLanes();
 
-        // BGMセット＆再生
         bgm.src = selectedSong.file;
         bgm.play();
 
         gameRunning = true;
 
-        spawnInterval = setInterval(() => {
-            spawnNote();
-        }, noteSpawnRate);
+        spawnInterval = setInterval(spawnNote, noteSpawnRate);
 
         requestAnimationFrame(gameLoop);
     }
@@ -254,11 +249,8 @@ document.addEventListener('DOMContentLoaded', () => {
         bgm.pause();
         bgm.currentTime = 0;
 
-        // 結果表示
-        const finalScore = document.getElementById('finalScore');
-        const finalRank = document.getElementById('finalRank');
-        finalScore.textContent = `スコア: ${score}`;
-        finalRank.textContent = `ランク: ${getRank(score)}`;
+        document.getElementById('finalScore').textContent = `スコア: ${score}`;
+        document.getElementById('finalRank').textContent = `ランク: ${getRank(score)}`;
 
         gameScreen.style.display = 'none';
         resultScreen.style.display = 'flex';
@@ -284,14 +276,13 @@ document.addEventListener('DOMContentLoaded', () => {
                     perfectSound.play();
                     judgeEffects.push(new JudgeEffect(note.x, note.y, 'PERFECT', 'aqua'));
                     notes.splice(i, 1);
-                    return true;
+                    return;
                 }
             }
         }
         combo = 0;
         missSound.play();
         judgeEffects.push(new JudgeEffect(lanes[laneIndex], canvas.height - 100, 'MISS', 'red'));
-        return false;
     }
 
     window.addEventListener('keydown', e => {
@@ -313,7 +304,6 @@ document.addEventListener('DOMContentLoaded', () => {
             ctx.stroke();
         }
 
-        // 判定ライン
         ctx.lineWidth = 5;
         ctx.strokeStyle = '#00e0ff';
         ctx.beginPath();
@@ -347,8 +337,9 @@ document.addEventListener('DOMContentLoaded', () => {
         judgeEffects.forEach((effect, idx) => {
             effect.update();
             effect.draw();
-            if (effect.alpha <= 0) judgeEffects.splice(idx, 1);
         });
+
+        judgeEffects = judgeEffects.filter(effect => effect.alpha > 0);
 
         drawScore();
 

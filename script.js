@@ -1,8 +1,3 @@
-// 完全修正版プロセカ風リズムゲームコード
-
-// DOMContentLoaded イベント
-// 全体処理をラップ
-
 document.addEventListener('DOMContentLoaded', () => {
     const titleScreen = document.getElementById('titleScreen');
     const gameScreen = document.getElementById('gameScreen');
@@ -18,8 +13,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const bgm = document.getElementById('bgm');
     const tapSound = document.getElementById('tapSound');
     const perfectSound = document.getElementById('perfectSound');
-    const greatSound = document.getElementById('greatSound');
-    const goodSound = document.getElementById('goodSound');
     const missSound = document.getElementById('missSound');
 
     const retryButton = document.getElementById('retryButton');
@@ -79,6 +72,7 @@ document.addEventListener('DOMContentLoaded', () => {
     refreshSongList();
 
     startGameButton.onclick = () => {
+        console.log('Startボタンが押されました');
         const difficulty = difficultySelector.value;
         noteSpeed = difficulties[difficulty].noteSpeed;
         noteSpawnRate = difficulties[difficulty].spawnRate;
@@ -171,7 +165,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         update() {
             this.y += this.speed;
-            if (this.y > canvas.height + 20 && !this.judged) {
+            if (this.y > canvas.height && !this.judged) {
                 this.miss();
                 this.judged = true;
             }

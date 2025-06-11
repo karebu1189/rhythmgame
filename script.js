@@ -15,7 +15,16 @@ let gameRunning = false;
 startButton.onclick = () => {
     startScreen.style.display = 'none';
     gameScreen.style.display = 'block';
-    startGame();
+    startGame();// ノーツを定期的に出現させる
+setInterval(() => {
+    if (gameRunning) {
+        let laneIndex = Math.floor(Math.random() * lanes.length);
+        let lane = lanes[laneIndex];
+        notes.push({ x: lane - 25, y: 0, laneIndex: laneIndex });
+    }
+}, 600);
+
+draw();
 };
 
 retryButton.onclick = () => {

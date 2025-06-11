@@ -8,7 +8,7 @@ canvas.height = 600;
 const laneCount = 4;
 const laneWidth = canvas.width / laneCount;
 const lanes = [];
-for(let i = 0; i < laneCount; i++){
+for(let i=0; i < laneCount; i++){
   lanes.push(laneWidth * i + laneWidth / 2);
 }
 
@@ -142,7 +142,7 @@ function startGame(){
   score = 0;
   notes = [];
 
-  // 音楽再生（スタートボタン操作必須）
+  // 音楽再生（ユーザー操作が必要）
   const audio = new Audio('https://cdn.pixabay.com/download/audio/2022/03/03/audio_668d4eae14.mp3?filename=happy-upbeat-funk-13327.mp3');
   audio.loop = false;
   audio.play();

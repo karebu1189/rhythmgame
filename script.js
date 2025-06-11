@@ -21,6 +21,7 @@ let difficulty = 'normal';
 let spawnInterval;
 let effects = [];
 
+const keyMapping = ['D', 'F', 'G', 'J', 'K', 'L']; // キー配置を固定
 const difficulties = {
     easy: { noteSpeed: 3, spawnRate: 800 },
     normal: { noteSpeed: 5, spawnRate: 600 },
@@ -39,7 +40,7 @@ function initializeLanes(count) {
 
     for (let i = 0; i < count; i++) {
         lanes.push(startX + i * laneWidth);
-        laneKeys.push(String.fromCharCode(65 + i));
+        laneKeys.push(keyMapping[i]); // 固定キー割り当て
     }
 }
 

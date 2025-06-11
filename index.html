@@ -1,54 +1,77 @@
 <!DOCTYPE html>
 <html lang="ja">
-
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>リズムゲーム</title>
-    <link rel="stylesheet" href="style.css">
+<meta charset="UTF-8" />
+<title>リズムゲーム</title>
+<style>
+  body { margin: 0; font-family: Arial, sans-serif; background: black; color: white; }
+  #titleScreen, #gameScreen, #resultScreen {
+    display: none; justify-content: center; align-items: center; flex-direction: column; height: 100vh;
+  }
+  #titleScreen { display: flex; }
+  .songItem { margin: 5px; cursor: pointer; }
+  canvas { background: black; display: block; margin: 0 auto; }
+  button { margin: 10px; padding: 10px 20px; font-size: 16px; cursor: pointer; }
+  #laneCountSelector { margin: 10px; font-size: 16px; }
+</style>
 </head>
-
 <body>
-    <div id="titleScreen">
-        <h1>リズムゲーム</h1>
 
-        <div>
-            <label for="laneCount">レーン数: </label>
-            <select id="laneCount">
-                <option value="6">6レーン</option>
-                <option value="8" selected>8レーン</option>
-            </select>
-        </div>
+<!-- タイトル画面 -->
+<div id="titleScreen">
+  <h1>リズムゲーム</h1>
 
-        <div id="songList"></div>
+  <h2>曲選択</h2>
+  <div id="songList"></div>
 
-        <select id="difficultySelector">
-            <option value="easy">Easy</option>
-            <option value="normal" selected>Normal</option>
-            <option value="hard">Hard</option>
-        </select>
-        <button id="startGameButton">スタート</button>
-    </div>
+  <h2>難易度選択</h2>
+  <select id="difficultySelector">
+    <option value="easy">Easy</option>
+    <option value="normal" selected>Normal</option>
+    <option value="hard">Hard</option>
+  </select>
 
-    <div id="gameScreen" style="display:none;">
-        <canvas id="gameCanvas"></canvas>
-        <audio id="bgm"></audio>
-        <audio id="tapSound" src="tap.mp3"></audio>
-        <audio id="perfectSound" src="perfect.mp3"></audio>
-        <audio id="greatSound" src="great.mp3"></audio>
-        <audio id="goodSound" src="good.mp3"></audio>
-        <audio id="missSound" src="miss.mp3"></audio>
-    </div>
+  <h2>レーン数選択</h2>
+  <select id="laneCountSelector">
+    <option value="4">4レーン</option>
+    <option value="6">6レーン</option>
+    <option value="8" selected>8レーン</option>
+  </select>
 
-    <div id="resultScreen" style="display:none;">
-        <h1>リザルト</h1>
-        <p id="finalScore"></p>
-        <p id="finalRank"></p>
-        <button id="retryButton">リトライ</button>
-        <button id="backButton">タイトルへ</button>
-    </div>
+  <button id="startGameButton">スタート</button>
 
-    <script src="script.js"></script>
+  <hr style="width: 50%; margin: 20px 0; border: 1px solid white;" />
+
+  <h2>曲追加</h2>
+  <input type="text" id="newSongTitle" placeholder="曲名を入力" />
+  <input type="text" id="newSongFile" placeholder="音声ファイルURL or パス" />
+  <button id="addSongButton">曲を追加</button>
+</div>
+
+<!-- ゲーム画面 -->
+<div id="gameScreen">
+  <canvas id="gameCanvas"></canvas>
+  <button id="retryButton">リトライ</button>
+  <button id="backButton">タイトルに戻る</button>
+</div>
+
+<!-- リザルト画面 -->
+<div id="resultScreen">
+  <h2>結果</h2>
+  <p id="finalScore"></p>
+  <p id="finalRank"></p>
+  <button id="resultBackButton">タイトルに戻る</button>
+</div>
+
+<!-- サウンド読み込み -->
+<audio id="bgm"></audio>
+<audio id="tapSound" src="https://actions.google.com/sounds/v1/cartoon/wood_plank_flicks.ogg"></audio>
+<audio id="perfectSound" src="https://actions.google.com/sounds/v1/cartoon/clang_and_wobble.ogg"></audio>
+<audio id="greatSound" src="https://actions.google.com/sounds/v1/cartoon/clang_and_wobble.ogg"></audio>
+<audio id="goodSound" src="https://actions.google.com/sounds/v1/cartoon/pop.ogg"></audio>
+<audio id="missSound" src="https://actions.google.com/sounds/v1/cartoon/slide_whistle_to_drum_hit.ogg"></audio>
+
+<script src="script.js"></script>
+
 </body>
-
 </html>

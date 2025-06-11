@@ -270,47 +270,87 @@ document.addEventListener('DOMContentLoaded', () => {
     // ノーツ描画
     ctx.fillStyle = 'white';
     notes.forEach(note => {
-      ctx.fillRect(note.x, note.y, 50, 50);
       note.y += noteSpeed;
+      ctx.fillRect(note.x, note.y, 50, 20);
     });
 
-    // キー表示
-    ctx.fillStyle = 'yellow';
-    ctx.font = '24px Arial';
-    lanes.forEach((lane, index) => {
-      if (index < laneCount) {
-        ctx.fillText(laneKeys[index], lane - 5, canvas.height - 10);
+    // ノーツ判定ラインを超えたらmiss処理
+    notes = notes.filter(note => {
+      if (note.y > canvas.height - 100 + 20) {
+        miss();
+        return false;
       }
+      return true;
     });
 
-    // 判定エフェクト
-    judgeEffects.forEach((effect, index) => {
-      ctx.fillStyle = effect.color;
-      ctx.font = '30px Arial';
-      ctx.fillText(effect.text, effect.x, effect.y);
-      effect.timer--;
-      if (effect.timer <= 0) judgeEffects.splice(index, 1);
-    });
-
-    // ノーツエフェクト（円）
-    effects.forEach((effect, index) => {
-      ctx.strokeStyle = 'cyan';
-      ctx.beginPath();
-      ctx.arc(effect.x + 25, effect.y + 25, 30 - effect.timer, 0, 2 * Math.PI);
-      ctx.stroke();
-      effect.timer--;
-      if (effect.timer <= 0) effects.splice(index, 1);
-    });
-
-    // スコア＆コンボ表示
+    // スコア・コンボ表示
     scoreCombo.innerText = `Score: ${score}  Combo: ${combo}`;
-
-    // 画面外ノーツ削除
-    notes = notes.filter(note => note.y <= canvas.height + 50);
 
     if (gameRunning) {
       animationId = requestAnimationFrame(draw);
     }
+  }
+
+  // 判定処理
+  window.addEventListener('keydown', e => {
+    if (!gameRunning) return;
+    const key = e.key.toUpperCase();
+    const laneIndex = laneKeys.indexOf(key);
+
+    if (laneIndex === -1 || laneIndex >= laneCount) return;
+
+    // 一番近いノーツを探す
+    let targetNoteIndex = -1;
+    let minDistance = 1000;
+
+    for (let i = 0; i < notes.length; i++) {
+      if (notes[i].laneIndex !== laneIndex) continue;
+      const distance = Math.abs(notes[i].y - (canvas.height - 100));
+      if (distance < minDistance) {
+        minDistance = distance;
+        targetNoteIndex = i;
+      }
+    }
+
+    if (targetNoteIndex === -1) {
+      miss();
+      return;
+    }
+
+    // 判定基準
+    if (minDistance < 10) {
+      perfect();
+      notes.splice(targetNoteIndex, 1);
+    } else if (minDistance < 25) {
+      great();
+      notes.splice(targetNoteIndex, 1);
+    } else if (minDistance < 40) {
+      good();
+      notes.splice(targetNoteIndex, 1);
+    } else {
+      miss();
+    }
+  });
+
+  // 判定効果音＆スコア更新関数
+  function perfect() {
+    score += 1000;
+    combo++;
+    perfectSound.play();
+  }
+  function great() {
+    score += 700;
+    combo++;
+    greatSound.play();
+  }
+  function good() {
+    score += 400;
+    combo++;
+    goodSound.play();
+  }
+  function miss() {
+    combo = 0;
+    missSound.play();
   }
 
   // ゲーム終了処理
@@ -323,133 +363,30 @@ document.addEventListener('DOMContentLoaded', () => {
     resultScreen.style.display = 'flex';
 
     document.getElementById('finalScore').innerText = `スコア: ${score}`;
-    document.getElementById('finalRank').innerText = `ランク: ${getRank(score)}`;
-
-    bgm.pause();
-    bgm.currentTime = 0;
+    document.getElementById('finalRank').innerText = rank(score);
   }
 
-  // スコアによるランク判定
-  function getRank(score) {
-    if (score >= 30000) return 'SS';
-    else if (score >= 20000) return 'S';
-    else if (score >= 15000) return 'A';
-    else if (score >= 10000) return 'B';
-    else return 'C';
+  // ランク判定
+  function rank(score) {
+    if (score > 9000) return 'SSS';
+    if (score > 8000) return 'SS';
+    if (score > 7000) return 'S';
+    if (score > 6000) return 'A';
+    if (score > 4000) return 'B';
+    if (score > 2000) return 'C';
+    return 'D';
   }
 
-  // 判定取得
-  function getJudge(noteY) {
-    let hitLine = canvas.height - 100;
-    let diff = Math.abs(noteY - hitLine);
-
-    if (diff <= 22.5) return { text: 'Perfect', color: 'gold', sound: perfectSound };
-    else if (diff <= 50) return { text: 'Great', color: 'blue', sound: greatSound };
-    else if (diff <= 80) return { text: 'Good', color: 'green', sound: goodSound };
-    else return { text: 'Miss', color: 'red', sound: missSound };
-  }
-
-  // ヒット処理
-  function handleHit(note, index) {
-    let judge = getJudge(note.y);
-    notes.splice(index, 1);
-
-    if (judge.text !== 'Miss') {
-      combo++;
-      switch (judge.text) {
-        case 'Perfect': score += 1000; break;
-        case 'Great': score += 700; break;
-        case 'Good': score += 300; break;
-      }
-    } else {
-      combo = 0;
-    }
-
-    judgeEffects.push({
-      text: judge.text,
-      color: judge.color,
-      x: note.x,
-      y: note.y,
-      timer: 30
-    });
-
-    judge.sound.play();
-  }
-
-  // キー押下判定
-  document.addEventListener('keydown', e => {
-    if (!gameRunning) return;
-    let key = e.key.toUpperCase();
-    let laneIndex = laneKeys.indexOf(key);
-    if (laneIndex === -1 || laneIndex >= laneCount) return;
-
-    // 最も近いノーツを判定（hitLineに近い順）
-    let candidateIndex = -1;
-    let minDiff = Infinity;
-    for (let i = 0; i < notes.length; i++) {
-      if (notes[i].laneIndex === laneIndex) {
-        let diff = Math.abs(notes[i].y - (canvas.height - 100));
-        if (diff < minDiff) {
-          minDiff = diff;
-          candidateIndex = i;
-        }
-      }
-    }
-    if (candidateIndex !== -1) {
-      let judge = getJudge(notes[candidateIndex].y);
-      if (judge.text !== 'Miss') {
-        handleHit(notes[candidateIndex], candidateIndex);
-      }
-    }
-  });
-
-  // タッチ対応（スマホ用） - タップで判定ラインに最も近いノーツを叩く
-  canvas.addEventListener('touchstart', e => {
-    if (!gameRunning) return;
-    e.preventDefault();
-
-    const rect = canvas.getBoundingClientRect();
-    const touchX = e.touches[0].clientX - rect.left;
-
-    // タッチ位置に近いレーンを判定
-    let closestLaneIndex = 0;
-    let minDist = Infinity;
-    lanes.forEach((laneX, i) => {
-      if (i >= laneCount) return;
-      let dist = Math.abs(touchX - laneX);
-      if (dist < minDist) {
-        minDist = dist;
-        closestLaneIndex = i;
-      }
-    });
-
-    // そのレーンでhit判定可能なノーツを探す
-    let candidateIndex = -1;
-    let minDiff = Infinity;
-    for (let i = 0; i < notes.length; i++) {
-      if (notes[i].laneIndex === closestLaneIndex) {
-        let diff = Math.abs(notes[i].y - (canvas.height - 100));
-        if (diff < minDiff) {
-          minDiff = diff;
-          candidateIndex = i;
-        }
-      }
-    }
-    if (candidateIndex !== -1) {
-      let judge = getJudge(notes[candidateIndex].y);
-      if (judge.text !== 'Miss') {
-        handleHit(notes[candidateIndex], candidateIndex);
-      }
-    }
-  }, { passive: false });
-
-  // リトライボタン処理（ゲーム画面）
-  retryButton.addEventListener('click', () => {
+  // リトライボタン
+  retryButton.onclick = () => {
     startGame();
-  });
+  };
+  retryButtonResult.onclick = () => {
+    startGame();
+  };
 
-  // タイトルへ戻る（ゲーム画面）
-  backButton.addEventListener('click', () => {
+  // タイトルへ戻るボタン
+  backButton.onclick = () => {
     gameRunning = false;
     clearInterval(spawnInterval);
     if (animationId) cancelAnimationFrame(animationId);
@@ -457,25 +394,18 @@ document.addEventListener('DOMContentLoaded', () => {
     gameScreen.style.display = 'none';
     resultScreen.style.display = 'none';
     titleScreen.style.display = 'flex';
+  };
+  backButtonResult.onclick = backButton.onclick;
 
-    bgm.pause();
-    bgm.currentTime = 0;
-  });
+  // ここが重要！！スタートボタンにクリックイベントを設定
+  startGameButton.addEventListener('click', startGame);
 
-  // リトライボタン（リザルト画面）
-  retryButtonResult.addEventListener('click', () => {
-    startGame();
-  });
-
-  // タイトルへ戻る（リザルト画面）
-  backButtonResult.addEventListener('click', () => {
-    resultScreen.style.display = 'none';
-    titleScreen.style.display = 'flex';
-  });
-
-  // 初期選択色
+  // 初期選択色セット
   songList.children[0].style.color = 'yellow';
 
+  // 初期レーン設定
+  initializeLanes();
+  resizeCanvas();
 });
 </script>
 

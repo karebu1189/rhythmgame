@@ -1,3 +1,41 @@
+document.addEventListener('DOMContentLoaded', () => {
+
+const titleScreen = document.getElementById('titleScreen');
+const songSelectScreen = document.getElementById('songSelectScreen');
+const gameScreen = document.getElementById('gameScreen');
+const resultScreen = document.getElementById('resultScreen');
+
+const toSongSelectButton = document.getElementById('toSongSelectButton');
+const startGameButton = document.getElementById('startGameButton');
+const songList = document.getElementById('songList');
+const bgm = document.getElementById('bgm');
+
+let selectedSong = songs[0];
+
+toSongSelectButton.onclick = () => {
+    titleScreen.style.display = 'none';
+    songSelectScreen.style.display = 'flex';
+};
+
+songs.forEach(song => {
+    const songButton = document.createElement('div');
+    songButton.className = 'songItem';
+    songButton.innerText = song.title;
+    songButton.onclick = () => {
+        selectedSong = song;
+        Array.from(songList.children).forEach(child => child.style.color = 'white');
+        songButton.style.color = 'yellow';
+    };
+    songList.appendChild(songButton);
+});
+
+startGameButton.onclick = () => {
+    songSelectScreen.style.display = 'none';
+    gameScreen.style.display = 'block';
+    bgm.src = selectedSong.file;
+    startGame();
+};
+});
 const songs = [
     { title: 'メデ', file: 'メデ.mp3' },
     { title: '曲2', file: 'song2.mp3' },

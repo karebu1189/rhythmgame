@@ -182,6 +182,14 @@ function setDifficulty(newDifficulty) {
 function setLaneCount(newCount) {
     laneCount = newCount;
 }
+// キャンバスを画面サイズに自動調整する
+function resizeCanvas() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+}
+
+window.addEventListener('resize', resizeCanvas);
+resizeCanvas(); // ページ読み込み時にも実行
 
 initializeLanes(laneCount);
 

@@ -3,6 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <title>Rhythm Game</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+        }
+        canvas {
+            display: block;
+        }
+    </style>
 </head>
 <body>
 
@@ -29,20 +38,23 @@
 
     <!-- ゲーム画面 -->
     <div id="gameScreen" style="display:none;">
-        <h1>Score: <span id="score">0</span></h1>
-        <canvas id="gameCanvas" width="600" height="600"></canvas>
+        <canvas id="gameCanvas"></canvas>
         <button id="retryButton">RETRY</button>
     </div>
 
-    <!-- 音楽 -->
+    <!-- リザルト画面 -->
+    <div id="resultScreen" style="display:none;">
+        <h1>リザルト</h1>
+        <p id="finalScore"></p>
+        <p id="finalRank"></p>
+        <button id="backButton">タイトルに戻る</button>
+    </div>
+
+    <!-- 音楽と効果音 -->
     <audio id="bgm" src="メデ.mp3"></audio>
+    <audio id="tapSound" src="tap.wav"></audio>
 
-    <!-- JavaScript読み込み -->
-    
-
-
-</body>
-</html>
-<script src="script.js"></script>
+    <!-- JavaScript -->
+    <script src="script.js"></script>
 </body>
 </html>

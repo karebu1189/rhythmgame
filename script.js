@@ -87,6 +87,11 @@ function startGame() {
     score = 0;
     notes = [];
 
+    // 曲終了イベント
+    bgm.onended = () => {
+        endGame();
+    };
+
     spawnInterval = setInterval(() => {
         if (gameRunning) {
             let laneIndex = Math.floor(Math.random() * lanes.length);
@@ -200,15 +205,6 @@ function draw() {
     ctx.fillStyle = 'white';
     ctx.font = '24px Arial';
     ctx.fillText('Score: ' + score, 20, 40);
-
-    // ノーツ落下判定（リザルト遷移）
-    notes = notes.filter(note => {
-        if (note.y > canvas.height + 50) {
-            endGame();
-            return false;
-        }
-        return true;
-    });
 
     if (gameRunning) {
         requestAnimationFrame(draw);

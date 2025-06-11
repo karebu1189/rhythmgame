@@ -1,47 +1,99 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>リズムゲーム</title>
-<link rel="stylesheet" href="style.css" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>プロセカ風音ゲー</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body, html { width: 100%; height: 100%; overflow: hidden; background-color: #111; color: white; font-family: sans-serif; }
+
+        #titleScreen, #gameScreen, #resultScreen {
+            display: none;
+            width: 100%;
+            height: 100%;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+
+        #titleScreen { display: flex; flex-direction: column; align-items: center; }
+
+        .songList {
+            display: flex;
+            overflow-x: auto;
+            width: 80%;
+            padding: 20px;
+            gap: 20px;
+        }
+
+        .songItem {
+            min-width: 200px;
+            height: 120px;
+            background-color: #333;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: transform 0.3s, background-color 0.3s;
+            flex-shrink: 0;
+        }
+
+        .songItem.selected {
+            background-color: #00e0ff;
+            transform: scale(1.1);
+        }
+
+        #gameCanvas {
+            background-color: black;
+        }
+
+        select, button {
+            margin: 10px;
+            padding: 10px 20px;
+            font-size: 16px;
+            border-radius: 10px;
+            border: none;
+            cursor: pointer;
+        }
+    </style>
 </head>
 <body>
+    <!-- 曲選択画面 -->
+    <div id="titleScreen">
+        <h1>曲を選択してください</h1>
+        <div class="songList" id="songList"></div>
+        <select id="difficultySelector">
+            <option value="easy">Easy</option>
+            <option value="normal" selected>Normal</option>
+            <option value="hard">Hard</option>
+        </select>
+        <button id="startGameButton">スタート</button>
+    </div>
 
-<!-- タイトル画面 -->
-<div id="titleScreen" class="title-screen">
-  <img src="proseka_logo.png" alt="プロセカタイトルロゴ" class="title-logo" />
-  <div class="button-container">
-    <select id="difficultySelector" class="btn select">
-      <option value="easy">イージー</option>
-      <option value="normal" selected>ノーマル</option>
-      <option value="hard">ハード</option>
-    </select>
-    <button id="startGameButton" class="btn">ゲームスタート</button>
-  </div>
-  <div id="songList" class="song-list"></div>
-</div>
+    <!-- ゲーム画面 -->
+    <div id="gameScreen">
+        <canvas id="gameCanvas"></canvas>
+        <button id="backButton">戻る</button>
+    </div>
 
-<!-- ゲーム画面 -->
-<div id="gameScreen" style="display:none; flex-direction: column; align-items: center;">
-  <canvas id="gameCanvas"></canvas>
-  <audio id="bgm" src="" preload="auto"></audio>
-  <audio id="tapSound" src="tap.mp3"></audio>
-  <audio id="perfectSound" src="perfect.mp3"></audio>
-  <audio id="greatSound" src="great.mp3"></audio>
-  <audio id="goodSound" src="good.mp3"></audio>
-  <audio id="missSound" src="miss.mp3"></audio>
-  <button id="retryButton" class="btn" style="margin-top:10px;">リトライ</button>
-  <button id="backButton" class="btn" style="margin-top:10px;">タイトルに戻る</button>
-</div>
+    <!-- リザルト画面 -->
+    <div id="resultScreen">
+        <h1 id="finalScore">スコア: 0</h1>
+        <h1 id="finalRank">ランク: D</h1>
+        <button id="retryButton">もう一度</button>
+        <button id="backButtonResult">曲選択に戻る</button>
+    </div>
 
-<!-- 結果画面 -->
-<div id="resultScreen" style="display:none; flex-direction: column; align-items: center; color: white;">
-  <h2 id="finalScore"></h2>
-  <h3 id="finalRank"></h3>
-  <button id="backButtonResult" class="btn">タイトルに戻る</button>
-</div>
+    <!-- 音声 -->
+    <audio id="bgm"></audio>
+    <audio id="tapSound" src="tap.mp3"></audio>
+    <audio id="perfectSound" src="perfect.mp3"></audio>
+    <audio id="greatSound" src="great.mp3"></audio>
+    <audio id="goodSound" src="good.mp3"></audio>
+    <audio id="missSound" src="miss.mp3"></audio>
 
-<script src="script.js"></script>
+    <script src="game.js"></script>
 </body>
 </html>

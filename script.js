@@ -1,6 +1,6 @@
-// 完全プロセカ風 判定強化版
-
+// プロセカ風音ゲー完全版（8レーン可変・レーン選択UI付き）
 document.addEventListener('DOMContentLoaded', () => {
+
     // 画面要素
     const titleScreen = document.getElementById('titleScreen');
     const gameScreen = document.getElementById('gameScreen');
@@ -8,6 +8,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const songList = document.getElementById('songList');
     const difficultySelector = document.getElementById('difficultySelector');
+    const laneSelector = document.getElementById('laneSelector');
     const startGameButton = document.getElementById('startGameButton');
 
     const canvas = document.getElementById('gameCanvas');
@@ -23,7 +24,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const retryButton = document.getElementById('retryButton');
     const backButton = document.getElementById('backButton');
 
-    // 曲データ
     const songs = [
         { title: 'メデ', file: 'メデ.mp3' },
         { title: '曲2', file: 'song2.mp3' },
@@ -32,9 +32,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let selectedSong = songs[0];
 
-    // ゲームデータ
     let lanes = [];
-    let laneKeys = ['D', 'F', 'G', 'J', 'K', 'L'];
+    let laneKeys = ['D', 'F', 'G', 'H', 'J', 'K', 'L', ';'];
     let notes = [];
     let effects = [];
     let judgeEffects = [];
@@ -51,9 +50,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let noteSpeed = difficulties.normal.noteSpeed;
     let noteSpawnRate = difficulties.normal.spawnRate;
-
-    let judgeLineFlashTimer = 0;
-    let judgeLineFlashColor = 'transparent';
+    let laneCount = 6;
 
     songs.forEach(song => {
         const songButton = document.createElement('div');
@@ -71,6 +68,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const difficulty = difficultySelector.value;
         noteSpeed = difficulties[difficulty].noteSpeed;
         noteSpawnRate = difficulties[difficulty].spawnRate;
+        laneCount = parseInt(laneSelector.value);
 
         titleScreen.style.display = 'none';
         gameScreen.style.display = 'block';
@@ -96,10 +94,10 @@ document.addEventListener('DOMContentLoaded', () => {
     function initializeLanes() {
         lanes = [];
         let laneWidth = 60;
-        let totalWidth = laneWidth * 6;
+        let totalWidth = laneWidth * laneCount;
         let startX = (canvas.width - totalWidth) / 2 + laneWidth / 2;
 
-        for (let i = 0; i < 6; i++) {
+        for (let i = 0; i < laneCount; i++) {
             lanes.push(startX + i * laneWidth);
         }
     }
@@ -132,14 +130,9 @@ document.addEventListener('DOMContentLoaded', () => {
         ctx.fillStyle = 'black';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-        // 判定ライン（光る演出）
-        if (judgeLineFlashTimer > 0) {
-            ctx.fillStyle = judgeLineFlashColor;
-            judgeLineFlashTimer--;
-        } else {
-            ctx.fillStyle = 'cyan';
-        }
-        ctx.fillRect(0, canvas.height - 100, canvas.width, 10);
+        // 判定ライン
+        ctx.fillStyle = 'cyan';
+        ctx.fillRect(0, canvas.height - 100, canvas.width, 5);
 
         // レーン表示
         ctx.strokeStyle = 'white';
@@ -160,7 +153,9 @@ document.addEventListener('DOMContentLoaded', () => {
         // キー表示
         ctx.fillStyle = 'yellow';
         lanes.forEach((lane, index) => {
-            ctx.fillText(laneKeys[index], lane - 5, canvas.height - 10);
+            if (index < laneCount) {
+                ctx.fillText(laneKeys[index], lane - 5, canvas.height - 10);
+            }
         });
 
         // 判定エフェクト
@@ -217,46 +212,28 @@ document.addEventListener('DOMContentLoaded', () => {
         let hitLine = canvas.height - 100;
         let diff = Math.abs(noteY - hitLine);
 
-        if (diff <= 15) return { text: 'Perfect', color: 'gold', sound: perfectSound };
-        else if (diff <= 40) return { text: 'Great', color: 'deepskyblue', sound: greatSound };
-        else if (diff <= 75) return { text: 'Good', color: 'lime', sound: goodSound };
+        if (diff <= 22.5) return { text: 'Perfect', color: 'gold', sound: perfectSound };
+        else if (diff <= 50) return { text: 'Great', color: 'blue', sound: greatSound };
+        else if (diff <= 80) return { text: 'Good', color: 'green', sound: goodSound };
         else return { text: 'Miss', color: 'red', sound: missSound };
     }
 
     function handleHit(note, index) {
         let judge = getJudge(note.y);
         notes.splice(index, 1);
-
-        switch (judge.text) {
-            case 'Perfect':
-                score += 300;
-                combo++;
-                break;
-            case 'Great':
-                score += 200;
-                combo++;
-                break;
-            case 'Good':
-                score += 100;
-                combo++;
-                break;
-            case 'Miss':
-                combo = 0;
-                break;
+        if (judge.text !== 'Miss') {
+            score += 100;
+            combo++;
+            tapSound.currentTime = 0;
+            tapSound.play();
+        } else {
+            combo = 0;
         }
-
         judge.sound.currentTime = 0;
         judge.sound.play();
 
         judgeEffects.push({ text: judge.text, color: judge.color, x: note.x, y: note.y, timer: 30 });
         effects.push({ x: note.x, y: note.y, timer: 15 });
-
-        flashJudgeLine(judge.color);
-    }
-
-    function flashJudgeLine(color) {
-        judgeLineFlashTimer = 10;
-        judgeLineFlashColor = color;
     }
 
     canvas.addEventListener('click', function (event) {
@@ -279,7 +256,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!gameRunning) return;
 
         const keyIndex = laneKeys.indexOf(event.key.toUpperCase());
-        if (keyIndex !== -1) {
+        if (keyIndex !== -1 && keyIndex < laneCount) {
             for (let i = 0; i < notes.length; i++) {
                 let note = notes[i];
                 if (note.laneIndex === keyIndex && note.y >= canvas.height - 120 && note.y <= canvas.height - 20) {

@@ -191,4 +191,102 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    //
+    // 判定処理
+    function judge(key) {
+        if (!gameRunning) return;
+
+        const laneIndex = laneKeys.indexOf(key.toUpperCase());
+        if (laneIndex === -1) return;
+
+        // 判定ライン付近のノーツ探索
+        for (let i = 0; i < notes.length; i++) {
+            let note = notes[i];
+            if (note.laneIndex === laneIndex) {
+                let dist = Math.abs(note.y + 25 - (canvas.height - 100));
+                if (dist < 60) {
+                    // 判定とスコア付与
+                    if (dist < 20) {
+                        score += 1000;
+                        combo++;
+                        perfectSound.currentTime = 0;
+                        perfectSound.play();
+                        judgeEffects.push({ text: 'Perfect', color: 'lime', x: note.x, y: canvas.height - 120, timer: 30 });
+                    } else if (dist < 40) {
+                        score += 600;
+                        combo++;
+                        greatSound.currentTime = 0;
+                        greatSound.play();
+                        judgeEffects.push({ text: 'Great', color: 'aqua', x: note.x, y: canvas.height - 120, timer: 30 });
+                    } else {
+                        score += 300;
+                        combo++;
+                        goodSound.currentTime = 0;
+                        goodSound.play();
+                        judgeEffects.push({ text: 'Good', color: 'yellow', x: note.x, y: canvas.height - 120, timer: 30 });
+                    }
+                    // エフェクト追加
+                    effects.push({ x: note.x, y: note.y, timer: 30 });
+                    notes.splice(i, 1);
+                    tapSound.currentTime = 0;
+                    tapSound.play();
+                    return;
+                }
+            }
+        }
+        // 判定に該当なし → ミス
+        combo = 0;
+        missSound.currentTime = 0;
+        missSound.play();
+        judgeEffects.push({ text: 'Miss', color: 'red', x: lanes[laneIndex], y: canvas.height - 120, timer: 30 });
+    }
+
+    // ゲーム終了処理
+    function endGame() {
+        gameRunning = false;
+        clearInterval(spawnInterval);
+        bgm.pause();
+
+        titleScreen.style.display = 'none';
+        gameScreen.style.display = 'none';
+        resultScreen.style.display = 'flex';
+
+        document.getElementById('finalScore').innerText = `スコア: ${score}`;
+        let rank;
+        if (score >= 90000) rank = 'S';
+        else if (score >= 70000) rank = 'A';
+        else if (score >= 50000) rank = 'B';
+        else if (score >= 30000) rank = 'C';
+        else rank = 'D';
+        document.getElementById('finalRank').innerText = `ランク: ${rank}`;
+    }
+
+    // イベント登録
+    startGameButton.onclick = () => {
+        noteSpeed = difficulties[difficultySelector.value].noteSpeed;
+        noteSpawnRate = difficulties[difficultySelector.value].spawnRate;
+
+        titleScreen.style.display = 'none';
+        gameScreen.style.display = 'flex';
+        resultScreen.style.display = 'none';
+
+        startGame();
+    };
+
+    retryButton.onclick = () => {
+        location.reload();
+    };
+
+    gameBackButton.onclick = () => {
+        location.reload();
+    };
+
+    resultBackButton.onclick = () => {
+        location.reload();
+    };
+
+    // キーボード判定
+    window.addEventListener('keydown', e => {
+        if (!gameRunning) return;
+        judge(e.key);
+    });
+});

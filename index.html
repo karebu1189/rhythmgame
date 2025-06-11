@@ -1,100 +1,63 @@
 <!DOCTYPE html>
 <html lang="ja">
-
 <head>
     <meta charset="UTF-8">
-    <title>リズムゲーム</title>
+    <title>プロセカ風音ゲー</title>
     <style>
-        body {
-            margin: 0;
-            overflow: hidden;
-            background-color: black;
-            color: white;
-            font-family: Arial, sans-serif;
-            text-align: center;
-        }
-
-        #gameCanvas {
-            display: block;
-            margin: 0 auto;
-            background-color: #222;
-        }
-
-        #titleScreen,
-        #gameScreen,
-        #resultScreen {
-            display: none;
-            padding: 20px;
-        }
-
-        .songItem {
-            cursor: pointer;
-            margin: 10px;
-        }
-
-        select {
-            margin: 10px;
-            padding: 5px;
-        }
-
-        button {
-            padding: 10px 20px;
-            margin: 10px;
-            cursor: pointer;
-        }
+        body { margin: 0; background: black; color: white; font-family: Arial, sans-serif; }
+        #gameCanvas { display: block; background: black; }
+        .screen { display: none; text-align: center; padding: 20px; }
+        .songItem { cursor: pointer; margin: 5px 0; }
+        button { padding: 10px 20px; margin: 10px; }
+        select { padding: 5px; }
     </style>
 </head>
-
 <body>
-    <!-- タイトル画面 -->
-    <div id="titleScreen" style="display:block;">
-        <h1>リズムゲーム</h1>
 
-        <h3>曲を選択</h3>
-        <div id="songList"></div>
+<div id="titleScreen" class="screen" style="display: block;">
+    <h1>プロセカ風音ゲー</h1>
+    <h3>曲選択</h3>
+    <div id="songList"></div>
 
-        <h3>難易度選択</h3>
-        <select id="difficultySelector">
-            <option value="easy">Easy</option>
-            <option value="normal" selected>Normal</option>
-            <option value="hard">Hard</option>
-        </select>
+    <h3>難易度選択</h3>
+    <select id="difficultySelector">
+        <option value="easy">Easy</option>
+        <option value="normal" selected>Normal</option>
+        <option value="hard">Hard</option>
+    </select>
 
-        <h3>レーン数選択</h3>
-        <select id="laneCountSelector">
-            <option value="4">4レーン</option>
-            <option value="6" selected>6レーン</option>
-            <option value="8">8レーン</option>
-        </select>
+    <h3>レーン数選択</h3>
+    <select id="laneSelector">
+        <option value="4">4レーン</option>
+        <option value="6" selected>6レーン</option>
+        <option value="8">8レーン</option>
+    </select>
 
-        <br>
-        <button id="startGameButton">スタート</button>
-    </div>
+    <br><br>
+    <button id="startGameButton">スタート</button>
+</div>
 
-    <!-- ゲーム画面 -->
-    <div id="gameScreen">
-        <canvas id="gameCanvas" width="800" height="600"></canvas>
-    </div>
+<div id="gameScreen" class="screen">
+    <canvas id="gameCanvas"></canvas>
+</div>
 
-    <!-- リザルト画面 -->
-    <div id="resultScreen">
-        <h1>リザルト</h1>
-        <h2 id="finalScore">スコア: 0</h2>
-        <h2 id="finalRank">ランク: C</h2>
-        <button id="retryButton">リトライ</button>
-        <button id="backButton">タイトルへ戻る</button>
-    </div>
+<div id="resultScreen" class="screen">
+    <h1>リザルト</h1>
+    <p id="finalScore">スコア: 0</p>
+    <p id="finalRank">ランク: C</p>
+    <button id="retryButton">リトライ</button>
+    <button id="backButton">タイトルへ</button>
+</div>
 
-    <!-- 音声ファイル -->
-    <audio id="bgm"></audio>
-    <audio id="tapSound" src="tap.mp3"></audio>
-    <audio id="perfectSound" src="perfect.mp3"></audio>
-    <audio id="greatSound" src="great.mp3"></audio>
-    <audio id="goodSound" src="good.mp3"></audio>
-    <audio id="missSound" src="miss.mp3"></audio>
+<!-- 音声 -->
+<audio id="bgm"></audio>
+<audio id="tapSound" src="tap.mp3"></audio>
+<audio id="perfectSound" src="perfect.mp3"></audio>
+<audio id="greatSound" src="great.mp3"></audio>
+<audio id="goodSound" src="good.mp3"></audio>
+<audio id="missSound" src="miss.mp3"></audio>
 
-    <!-- JavaScript読み込み -->
-    <script src="script.js"></script>
+<script src="script.js"></script>
+
 </body>
-
 </html>

@@ -6,14 +6,19 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <!-- タイトルは一つだけ -->
-    <h1>Rhythm Game</h1>
+    <div id="startScreen">
+        <h1>Rhythm Game</h1>
+        <button id="startButton">START</button>
+    </div>
 
-    <!-- ゲーム画面 -->
-    <canvas id="gameCanvas" width="400" height="600"></canvas>
+    <div id="gameScreen" style="display:none;">
+        <h1>Score: <span id="score">0</span></h1>
+        <canvas id="gameCanvas" width="600" height="600"></canvas>
+        <button id="retryButton">RETRY</button>
+    </div>
 
-    <!-- JavaScript読み込み -->
+    <audio id="bgm" src="メデ.mp3"></audio>
+
     <script src="script.js"></script>
 </body>
 </html>
-

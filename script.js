@@ -89,7 +89,18 @@ function draw() {
 
     notes = notes.filter(note => note.y <= canvas.height + 50);
 
-    if (gameRunning) {
+    if (gameRunning) {const keyIndex = laneKeys.indexOf(event.key.toUpperCase());
+if (keyIndex !== -1) {
+    for (let i = 0; i < notes.length; i++) {
+        let note = notes[i];
+        if (note.laneIndex === keyIndex && note.y >= canvas.height - 100 && note.y <= canvas.height - 20) {
+            notes.splice(i, 1);
+            score += 100;
+            scoreDisplay.innerText = score;
+            break;
+        }
+    }
+}
         requestAnimationFrame(draw);
     }
 }

@@ -1,63 +1,89 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-    <meta charset="UTF-8">
-    <title>リズムゲーム</title>
-    <style>
-        body {
-            margin: 0;
-            background: linear-gradient(135deg, #a0c4ff, #bdb2ff);
-            color: white;
-            font-family: 'Arial', sans-serif;
-            overflow: hidden;
-        }
-        #gameCanvas {
-            display: block;
-            background: black;
-        }
-        .screen {
-            display: none;
-            text-align: center;
-            padding: 20px;
-        }
-        .songItem {
-            cursor: pointer;
-            margin: 5px 0;
-        }
-        button {
-            padding: 10px 20px;
-            margin: 10px;
-            font-size: 16px;
-            border: none;
-            border-radius: 10px;
-            background: #ffafcc;
-            color: white;
-            transition: background 0.3s;
-        }
-        button:hover {
-            background: #ff7baf;
-        }
-        select {
-            padding: 5px;
-            font-size: 16px;
-            margin-bottom: 10px;
-        }
-        #titleScreen h1 {
-            font-size: 60px;
-            margin-top: 100px;
-            color: #ffffff;
-            text-shadow: 0 0 20px rgba(0,0,0,0.5);
-        }
-        #titleScreen h3 {
-            margin-top: 40px;
-            color: #333;
-        }
-    </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+<title>リズムゲーム</title>
+<style>
+    html, body {
+        margin: 0; padding: 0; height: 100%;
+        background: linear-gradient(135deg, #a0c4ff, #bdb2ff);
+        color: white;
+        font-family: 'Arial', sans-serif;
+        overflow: hidden;
+    }
+    #gameCanvas {
+        display: block;
+        background: black;
+        width: 100vw;
+        height: 100vh;
+        touch-action: manipulation;
+        -webkit-user-select: none;
+        -ms-user-select: none;
+        user-select: none;
+    }
+    .screen {
+        display: none;
+        text-align: center;
+        padding: 20px;
+        height: 100vh;
+        box-sizing: border-box;
+        overflow-y: auto;
+    }
+    #titleScreen {
+        display: block;
+    }
+    .songItem {
+        cursor: pointer;
+        margin: 5px 0;
+        font-size: 1.2rem;
+        user-select: none;
+    }
+    button {
+        padding: 12px 25px;
+        margin: 10px;
+        font-size: 1.2rem;
+        border: none;
+        border-radius: 12px;
+        background: #ffafcc;
+        color: white;
+        transition: background 0.3s;
+        cursor: pointer;
+        user-select: none;
+    }
+    button:hover, button:focus {
+        background: #ff7baf;
+        outline: none;
+    }
+    select {
+        padding: 8px;
+        font-size: 1.2rem;
+        margin-bottom: 10px;
+        border-radius: 8px;
+        border: none;
+        user-select: none;
+    }
+    #titleScreen h1 {
+        font-size: 4rem;
+        margin-top: 4rem;
+        color: #fff;
+        text-shadow: 0 0 20px rgba(0,0,0,0.5);
+        user-select: none;
+    }
+    #titleScreen h3 {
+        margin-top: 2rem;
+        color: #333;
+    }
+    #resultScreen p {
+        font-size: 2rem;
+        user-select: none;
+    }
+</style>
 </head>
 <body>
 
-<div id="titleScreen" class="screen" style="display: block;">
-    <h1>Project Sound</h1> <!-- プロセカ風タイトル -->
+<div id="titleScreen" class="screen">
+    <h1>Project Sound</h1>
     <h3>曲選択</h3>
     <div id="songList"></div>
 
@@ -75,7 +101,6 @@
         <option value="8">8レーン</option>
     </select>
 
-    <br><br>
     <button id="startGameButton">スタート</button>
 </div>
 
@@ -91,7 +116,7 @@
     <button id="backButton">タイトルへ</button>
 </div>
 
-<!-- 音声 -->
+<!-- 音声ファイルは各自用意してください -->
 <audio id="bgm"></audio>
 <audio id="tapSound" src="tap.mp3"></audio>
 <audio id="perfectSound" src="perfect.mp3"></audio>

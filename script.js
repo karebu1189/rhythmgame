@@ -10,6 +10,11 @@ const retryButton = document.getElementById('retryButton');
 const backButton = document.getElementById('backButton');
 const bgm = document.getElementById('bgm');
 const tapSound = document.getElementById('tapSound');
+const perfectSound = document.getElementById('perfectSound');
+const greatSound = document.getElementById('greatSound');
+const goodSound = document.getElementById('goodSound');
+const missSound = document.getElementById('missSound');
+
 const difficultySelector = document.getElementById('difficultySelector');
 const laneSelector = document.getElementById('laneSelector');
 
@@ -17,12 +22,14 @@ let lanes = [];
 let laneKeys = [];
 let notes = [];
 let score = 0;
+let combo = 0;
 let gameRunning = false;
 let laneCount = 6;
 let difficulty = 'normal';
 let spawnInterval;
 let effects = [];
 let judgeEffects = [];
+let backgroundHue = 0;
 
 const keyMapping = ['D', 'F', 'G', 'J', 'K', 'L'];
 const difficulties = {
@@ -45,6 +52,13 @@ resizeCanvas();
 function playTapSound() {
     tapSound.currentTime = 0;
     tapSound.play();
+}
+
+function playJudgeSound(judge) {
+    if (judge === 'Perfect') { perfectSound.currentTime = 0; perfectSound.play(); }
+    else if (judge === 'Great') { greatSound.currentTime = 0; greatSound.play(); }
+    else if (judge === 'Good') { goodSound.currentTime = 0; goodSound.play(); }
+    else if (judge === 'Miss') { missSound.currentTime = 0; missSound.play(); }
 }
 
 function initializeLanes(count) {
@@ -85,9 +99,9 @@ function startGame() {
     bgm.play();
     gameRunning = true;
     score = 0;
+    combo = 0;
     notes = [];
 
-    // 曲終了イベント
     bgm.onended = () => {
         endGame();
     };
@@ -116,7 +130,11 @@ canvas.addEventListener('click', function (event) {
             let judge = getJudge(note.y);
             notes.splice(i, 1);
             score += 100;
+            combo++;
             playTapSound();
+            playJudgeSound(judge);
+            if (judge === 'Miss') combo = 0;
+
             judgeEffects.push({ text: judge, x: note.x, y: note.y, timer: 30 });
             effects.push({ x: note.x, y: note.y, timer: 15 });
             return;
@@ -135,7 +153,11 @@ window.addEventListener('keydown', function (event) {
                 let judge = getJudge(note.y);
                 notes.splice(i, 1);
                 score += 100;
+                combo++;
                 playTapSound();
+                playJudgeSound(judge);
+                if (judge === 'Miss') combo = 0;
+
                 judgeEffects.push({ text: judge, x: note.x, y: note.y, timer: 30 });
                 effects.push({ x: note.x, y: note.y, timer: 15 });
                 return;
@@ -155,7 +177,10 @@ function getJudge(noteY) {
 }
 
 function draw() {
-    ctx.fillStyle = 'black';
+    backgroundHue += 0.5;
+    if (backgroundHue >= 360) backgroundHue = 0;
+
+    ctx.fillStyle = `hsl(${backgroundHue}, 50%, 15%)`;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     ctx.strokeStyle = 'white';
@@ -177,7 +202,6 @@ function draw() {
         ctx.fillText(laneKeys[index], lane - 5, canvas.height - 10);
     });
 
-    // 判定エフェクト描画
     judgeEffects.forEach((effect, index) => {
         ctx.fillStyle = 'white';
         if (effect.text === 'Perfect') ctx.fillStyle = 'gold';
@@ -191,7 +215,6 @@ function draw() {
         if (effect.timer <= 0) judgeEffects.splice(index, 1);
     });
 
-    // タップエフェクト
     effects.forEach((effect, index) => {
         ctx.strokeStyle = 'cyan';
         ctx.beginPath();
@@ -201,10 +224,11 @@ function draw() {
         if (effect.timer <= 0) effects.splice(index, 1);
     });
 
-    // スコア表示
+    // スコアとコンボ表示
     ctx.fillStyle = 'white';
     ctx.font = '24px Arial';
     ctx.fillText('Score: ' + score, 20, 40);
+    ctx.fillText('Combo: ' + combo, 20, 80);
 
     if (gameRunning) {
         requestAnimationFrame(draw);
@@ -242,7 +266,11 @@ canvas.addEventListener('touchstart', function (event) {
             let judge = getJudge(note.y);
             notes.splice(i, 1);
             score += 100;
+            combo++;
             playTapSound();
+            playJudgeSound(judge);
+            if (judge === 'Miss') combo = 0;
+
             judgeEffects.push({ text: judge, x: note.x, y: note.y, timer: 30 });
             effects.push({ x: note.x, y: note.y, timer: 15 });
             return;

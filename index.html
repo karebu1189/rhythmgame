@@ -4,12 +4,44 @@
     <meta charset="UTF-8">
     <title>リズムゲーム</title>
     <style>
-        body { margin: 0; font-family: Arial, sans-serif; background-color: black; color: white; }
-        #titleScreen, #gameScreen, #resultScreen { display: none; justify-content: center; align-items: center; flex-direction: column; height: 100vh; }
-        #titleScreen { display: flex; }
-        .songItem { margin: 5px; cursor: pointer; }
-        canvas { background-color: black; display: block; }
-        button { margin: 10px; padding: 10px 20px; font-size: 16px; cursor: pointer; }
+        body {
+            margin: 0;
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(to bottom, #1e1e2f, #3a3a5f);
+            color: white;
+        }
+        #titleScreen, #gameScreen, #resultScreen {
+            display: none;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            height: 100vh;
+        }
+        #titleScreen {
+            display: flex;
+            background: url('proseka_title_bg.jpg') center/cover no-repeat;
+        }
+        .songItem {
+            margin: 5px;
+            cursor: pointer;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 5px 10px;
+            border-radius: 10px;
+        }
+        canvas {
+            background: url('proseka_lane_bg.jpg') center/cover no-repeat;
+            display: block;
+        }
+        button {
+            margin: 10px;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            border-radius: 10px;
+            border: none;
+            background-color: #00bcd4;
+            color: white;
+        }
     </style>
 </head>
 <body>
@@ -28,13 +60,6 @@
             <option value="hard">Hard</option>
         </select>
 
-        <h2>レーン数選択</h2>
-        <select id="laneSelector">
-            <option value="4">4レーン</option>
-            <option value="6" selected>6レーン</option>
-            <option value="8">8レーン</option>
-        </select>
-
         <button id="startGameButton">スタート</button>
     </div>
 
@@ -50,7 +75,7 @@
         <h2>結果</h2>
         <p id="finalScore"></p>
         <p id="finalRank"></p>
-        <button id="backButton">タイトルに戻る</button>
+        <button id="backButtonResult">タイトルに戻る</button>
     </div>
 
     <!-- サウンド読み込み -->
@@ -61,7 +86,6 @@
     <audio id="goodSound" src="https://actions.google.com/sounds/v1/cartoon/pop.ogg"></audio>
     <audio id="missSound" src="https://actions.google.com/sounds/v1/cartoon/slide_whistle_to_drum_hit.ogg"></audio>
 
-    <!-- スクリプト読み込み -->
     <script src="script.js"></script>
 
 </body>

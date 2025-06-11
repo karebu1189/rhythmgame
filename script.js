@@ -265,3 +265,205 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
 });
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+
+canvas.width = 600;
+canvas.height = 800;
+
+let lanes = [100, 200, 300, 400, 500];
+let laneKeys = ['D', 'F', 'J', 'K', 'L'];
+let notes = [];
+let noteSpeed = 5;
+let score = 0;
+let combo = 0;
+let gameRunning = false;
+let judgeEffects = [];
+let effects = [];
+
+// 画像背景読み込み
+const bgImage = new Image();
+bgImage.src = 'background.jpg';  // 画像ファイルは同じフォルダに配置してください
+
+// 複雑な動くグラデーション用パラメータ
+let gradientAngle = 0;
+
+// パーティクル設定
+let particles = [];
+const PARTICLE_COUNT = 80;
+
+function randomRange(min, max) {
+    return Math.random() * (max - min) + min;
+}
+
+function initParticles() {
+    particles = [];
+    for (let i = 0; i < PARTICLE_COUNT; i++) {
+        particles.push({
+            x: Math.random() * canvas.width,
+            y: Math.random() * canvas.height,
+            size: randomRange(1, 3),
+            speedX: randomRange(-0.3, 0.3),
+            speedY: randomRange(-0.1, 0.1),
+            alpha: randomRange(0.1, 0.5),
+            alphaSpeed: randomRange(0.002, 0.007),
+            growing: true
+        });
+    }
+}
+
+function updateAndDrawBackground() {
+    // 1. 画像背景を描く（読み込み済みなら）
+    if (bgImage.complete) {
+        ctx.drawImage(bgImage, 0, 0, canvas.width, canvas.height);
+    } else {
+        // 画像読み込み前は黒背景
+        ctx.fillStyle = 'black';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+    }
+
+    // 2. 動くグラデーションオーバーレイ
+    gradientAngle += 0.01;
+    let gradient = ctx.createLinearGradient(
+        canvas.width / 2 + Math.cos(gradientAngle) * 200, 0,
+        canvas.width / 2 + Math.cos(gradientAngle + Math.PI) * 200, canvas.height
+    );
+    gradient.addColorStop(0, 'rgba(120, 130, 255, 0.2)');
+    gradient.addColorStop(0.5, 'rgba(200, 220, 255, 0.1)');
+    gradient.addColorStop(1, 'rgba(120, 130, 255, 0.2)');
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // 3. パーティクルを更新＆描画
+    particles.forEach(p => {
+        p.x += p.speedX;
+        p.y += p.speedY;
+
+        if (p.x < 0) p.x = canvas.width;
+        if (p.x > canvas.width) p.x = 0;
+        if (p.y < 0) p.y = canvas.height;
+        if (p.y > canvas.height) p.y = 0;
+
+        if (p.growing) {
+            p.alpha += p.alphaSpeed;
+            if (p.alpha >= 0.5) p.growing = false;
+        } else {
+            p.alpha -= p.alphaSpeed;
+            if (p.alpha <= 0.1) p.growing = true;
+        }
+
+        ctx.fillStyle = `rgba(255, 255, 255, ${p.alpha.toFixed(2)})`;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.size, 0, 2 * Math.PI);
+        ctx.fill();
+    });
+}
+
+// --- 以下は既存のゲーム処理部分 ---
+
+function startGame() {
+    if (gameRunning) return;
+    gameRunning = true;
+    notes = [];
+    score = 0;
+    combo = 0;
+    judgeEffects = [];
+    effects = [];
+    initParticles();
+
+    for (let i = 0; i < 50; i++) {
+        let lane = lanes[Math.floor(Math.random() * lanes.length)];
+        notes.push({ x: lane, y: -i * 150 });
+    }
+
+    draw();
+}
+
+function judge(key) {
+    let laneIndex = laneKeys.indexOf(key.toUpperCase());
+    if (laneIndex === -1) return;
+
+    let laneX = lanes[laneIndex];
+    for (let i = 0; i < notes.length; i++) {
+        let note = notes[i];
+        if (note.x === laneX && Math.abs(note.y - (canvas.height - 100)) < 50) {
+            notes.splice(i, 1);
+            score += 100;
+            combo++;
+            judgeEffects.push({ text: "GOOD", x: laneX, y: canvas.height - 150, color: 'lime', timer: 30 });
+            effects.push({ x: laneX, y: canvas.height - 100, timer: 30 });
+            return;
+        }
+    }
+    combo = 0;
+    judgeEffects.push({ text: "MISS", x: lanes[laneIndex], y: canvas.height - 150, color: 'red', timer: 30 });
+}
+
+document.addEventListener('keydown', (e) => {
+    if (!gameRunning) return;
+    judge(e.key);
+});
+
+function draw() {
+    if (!gameRunning) return;
+
+    updateAndDrawBackground();
+
+    // 判定ライン
+    ctx.fillStyle = 'cyan';
+    ctx.fillRect(0, canvas.height - 100, canvas.width, 5);
+
+    // レーン線
+    ctx.strokeStyle = 'white';
+    lanes.forEach(lane => {
+        ctx.beginPath();
+        ctx.moveTo(lane, 0);
+        ctx.lineTo(lane, canvas.height);
+        ctx.stroke();
+    });
+
+    // ノーツ描画
+    ctx.fillStyle = 'white';
+    notes.forEach(note => {
+        ctx.fillRect(note.x - 25, note.y - 25, 50, 50);
+        note.y += noteSpeed;
+    });
+
+    // レーンキー表示
+    ctx.fillStyle = 'yellow';
+    ctx.font = '20px Arial';
+    lanes.forEach((lane, index) => {
+        ctx.fillText(laneKeys[index], lane - 7, canvas.height - 20);
+    });
+
+    // ジャッジ演出
+    judgeEffects.forEach((effect, index) => {
+        ctx.fillStyle = effect.color;
+        ctx.font = '30px Arial';
+        ctx.fillText(effect.text, effect.x - 20, effect.y);
+        effect.timer--;
+        if (effect.timer <= 0) judgeEffects.splice(index, 1);
+    });
+
+    // ノーツヒットの波紋エフェクト
+    effects.forEach((effect, index) => {
+        ctx.strokeStyle = 'cyan';
+        ctx.beginPath();
+        ctx.arc(effect.x, effect.y, 30 - effect.timer, 0, 2 * Math.PI);
+        ctx.stroke();
+        effect.timer--;
+        if (effect.timer <= 0) effects.splice(index, 1);
+    });
+
+    // スコア・コンボ表示
+    ctx.fillStyle = 'white';
+    ctx.font = '24px Arial';
+    ctx.fillText('Score: ' + score, 20, 40);
+    ctx.fillText('Combo: ' + combo, 20, 80);
+
+    notes = notes.filter(note => note.y <= canvas.height + 50);
+
+    requestAnimationFrame(draw);
+}
+
+startGame();

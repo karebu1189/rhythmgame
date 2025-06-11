@@ -229,4 +229,6 @@ document.addEventListener('DOMContentLoaded', () => {
         let judge = getJudge(note.y);
         notes.splice(index, 1);
         if (judge.text !== 'Miss') {
-           
+         <canvas id="gameCanvas" style="background:#222;"></canvas>
+<button id="startButton">スタート</button>
+  

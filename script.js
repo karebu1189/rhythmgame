@@ -8,12 +8,12 @@ canvas.height = 600;
 const laneCount = 4;
 const laneWidth = canvas.width / laneCount;
 const lanes = [];
-for(let i=0; i<laneCount; i++){
+for(let i = 0; i < laneCount; i++){
   lanes.push(laneWidth * i + laneWidth / 2);
 }
 
 // キー対応（A S D F）
-const laneKeys = ['A','S','D','F'];
+const laneKeys = ['A', 'S', 'D', 'F'];
 
 // ノーツ配列
 let notes = [];
@@ -21,7 +21,7 @@ let notes = [];
 // 判定ラインのY座標
 const judgeLineY = canvas.height - 100;
 
-// 判定音読み込み
+// 判定音
 const perfectSound = new Audio('https://actions.google.com/sounds/v1/cartoon/clang_and_wobble.ogg');
 const greatSound = new Audio('https://actions.google.com/sounds/v1/cartoon/clang_and_wobble.ogg');
 const goodSound = new Audio('https://actions.google.com/sounds/v1/cartoon/pop.ogg');
@@ -34,7 +34,7 @@ let score = 0;
 // ノーツ速度（ピクセル/秒）
 const noteSpeed = 300;
 
-// キー押し判定関数
+// 判定処理
 function judgeNoteHit(laneIndex){
   if(notes.length === 0){
     miss();
@@ -44,7 +44,7 @@ function judgeNoteHit(laneIndex){
   let targetNoteIndex = -1;
   let minDistance = 1000;
 
-  for(let i=0; i<notes.length; i++){
+  for(let i=0; i < notes.length; i++){
     if(notes[i].laneIndex !== laneIndex) continue;
     const distance = Math.abs(notes[i].y - judgeLineY);
     if(distance < minDistance){
@@ -72,7 +72,7 @@ function judgeNoteHit(laneIndex){
   }
 }
 
-// 判定効果関数
+// 判定結果の音とスコア加算
 function perfect(){
   score += 1000;
   perfectSound.play();
@@ -96,7 +96,7 @@ function miss(){
   console.log("Miss!");
 }
 
-// キー入力イベント
+// キー押下イベント
 document.addEventListener('keydown', e => {
   if(!gameRunning) return;
   const key = e.key.toUpperCase();
@@ -114,9 +114,8 @@ canvas.addEventListener('touchstart', e => {
   const rect = canvas.getBoundingClientRect();
   const x = touch.clientX - rect.left;
 
-  // どのレーンをタップしたか判定（±30px以内）
   let laneIndex = -1;
-  for(let i=0; i<lanes.length; i++){
+  for(let i = 0; i < lanes.length; i++){
     if(Math.abs(x - lanes[i]) < 30){
       laneIndex = i;
       break;
@@ -137,21 +136,21 @@ function spawnNote(){
   });
 }
 
-// ゲーム開始
+// ゲーム開始処理
 function startGame(){
   gameRunning = true;
   score = 0;
   notes = [];
 
-  // 音楽再生（ブラウザによってはスタートボタンからの操作必須）
-  const audioElement = new Audio('https://cdn.pixabay.com/download/audio/2022/03/03/audio_668d4eae14.mp3?filename=happy-upbeat-funk-13327.mp3');
-  audioElement.loop = false;
-  audioElement.play();
+  // 音楽再生（スタートボタン操作必須）
+  const audio = new Audio('https://cdn.pixabay.com/download/audio/2022/03/03/audio_668d4eae14.mp3?filename=happy-upbeat-funk-13327.mp3');
+  audio.loop = false;
+  audio.play();
 
-  // ノーツ生成ループ
+  // ノーツ生成を1秒ごとに実行
   setInterval(spawnNote, 1000);
 
-  // アニメーション開始
+  // ゲームループ開始
   requestAnimationFrame(gameLoop);
 }
 
@@ -168,19 +167,19 @@ function gameLoop(timestamp){
   ctx.fillStyle = 'yellow';
   ctx.fillRect(0, judgeLineY, canvas.width, 5);
 
-  // レーンライン
+  // レーン線描画
   ctx.strokeStyle = 'white';
   ctx.lineWidth = 2;
-  for(let i=1; i<laneCount; i++){
+  for(let i=1; i < laneCount; i++){
     ctx.beginPath();
     ctx.moveTo(laneWidth * i, 0);
     ctx.lineTo(laneWidth * i, canvas.height);
     ctx.stroke();
   }
 
-  // ノーツ移動＆描画
+  // ノーツの移動と描画
   ctx.fillStyle = 'cyan';
-  for(let i=0; i<notes.length; i++){
+  for(let i=0; i < notes.length; i++){
     notes[i].y += noteSpeed * delta;
     const x = lanes[notes[i].laneIndex];
     ctx.beginPath();
@@ -205,7 +204,7 @@ function gameLoop(timestamp){
   }
 }
 
-// スタートボタンイベント
+// スタートボタンのクリックイベント
 document.getElementById('startButton').addEventListener('click', () => {
   if(!gameRunning){
     startGame();

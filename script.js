@@ -52,7 +52,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // --- 曲リスト ---
   const songs = [
     { title: 'メデ', file: 'med.mp3' },
-    { title: '曲2', file: 'song2.mp3' },
+    { title: 'トンデモワンダーズ', file: 'tonndemowannda-zu.mp3' },
     { title: '曲3', file: 'song3.mp3' }
   ];
 

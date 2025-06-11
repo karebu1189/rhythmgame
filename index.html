@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <title>リズムゲーム</title>
+    <title>プロセカ風リズムゲーム</title>
     <style>
         body { margin: 0; font-family: Arial, sans-serif; background-color: black; color: white; }
         #titleScreen, #gameScreen, #resultScreen { display: none; justify-content: center; align-items: center; flex-direction: column; height: 100vh; }
@@ -16,7 +16,7 @@
 
     <!-- タイトル画面 -->
     <div id="titleScreen">
-        <h1>リズムゲーム</h1>
+        <h1>プロセカ風リズムゲーム</h1>
 
         <h2>曲選択</h2>
         <div id="songList"></div>
@@ -54,7 +54,7 @@
     <audio id="goodSound" src="https://actions.google.com/sounds/v1/cartoon/pop.ogg"></audio>
     <audio id="missSound" src="https://actions.google.com/sounds/v1/cartoon/slide_whistle_to_drum_hit.ogg"></audio>
 
-    <!-- スクリプト読み込み -->
+    <!-- スクリプト読み込み（必ず body の一番下） -->
     <script src="script.js"></script>
 
 </body>

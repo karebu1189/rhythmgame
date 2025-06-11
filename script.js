@@ -7,7 +7,19 @@ const retryButton = document.getElementById('retryButton');
 const scoreDisplay = document.getElementById('score');
 const bgm = document.getElementById('bgm');
 
-let lanes = [50, 150, 250, 350, 450, 550];
+let lanes = [50, 150, 250, 350, 450, 550];const rect = canvas.getBoundingClientRect();
+const clickX = event.clientX - rect.left;
+const clickY = event.clientY - rect.top;
+
+for (let i = 0; i < notes.length; i++) {
+    let note = notes[i];
+    if (clickX >= note.x && clickX <= note.x + 50 && clickY >= note.y && clickY <= note.y + 50) {
+        notes.splice(i, 1);
+        score += 100;
+        scoreDisplay.innerText = score;
+        break;
+    }
+}
 let notes = [];
 let score = 0;
 let gameRunning = false;

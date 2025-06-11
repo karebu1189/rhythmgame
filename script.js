@@ -29,7 +29,6 @@ let difficulty = 'normal';
 let spawnInterval;
 let effects = [];
 let judgeEffects = [];
-let backgroundHue = 0;
 
 const keyMapping = ['D', 'F', 'G', 'J', 'K', 'L'];
 const difficulties = {
@@ -177,10 +176,7 @@ function getJudge(noteY) {
 }
 
 function draw() {
-    backgroundHue += 0.5;
-    if (backgroundHue >= 360) backgroundHue = 0;
-
-    ctx.fillStyle = `hsl(${backgroundHue}, 50%, 15%)`;
+    ctx.fillStyle = 'black';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     ctx.strokeStyle = 'white';

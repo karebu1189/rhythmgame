@@ -7,36 +7,34 @@
 </head>
 <body>
 
-    <!-- タイトル画面 -->
+    <!-- 曲選択画面 -->
     <div id="titleScreen">
         <h1>リズムゲーム</h1>
         <div id="songList"></div>
-
         <label for="difficultySelector">難易度:</label>
         <select id="difficultySelector">
             <option value="easy">Easy</option>
             <option value="normal" selected>Normal</option>
             <option value="hard">Hard</option>
         </select>
-
-        <button id="startGameButton">START</button>
+        <button id="startGameButton">スタート</button>
     </div>
 
     <!-- ゲーム画面 -->
     <div id="gameScreen" style="display:none;">
         <canvas id="gameCanvas"></canvas>
-        <button id="retryButton">RETRY</button>
+        <button id="retryButton">リトライ</button>
     </div>
 
     <!-- リザルト画面 -->
     <div id="resultScreen" style="display:none;">
-        <h1>リザルト</h1>
-        <h2 id="finalScore">スコア: 0</h2>
-        <h2 id="finalRank">ランク: C</h2>
-        <button id="backButton">タイトルに戻る</button>
+        <h1>結果発表</h1>
+        <p id="finalScore">スコア:</p>
+        <p id="finalRank">ランク:</p>
+        <button id="backButton">曲選択に戻る</button>
     </div>
 
-    <!-- 音源 -->
+    <!-- 音声ファイル -->
     <audio id="bgm"></audio>
     <audio id="tapSound" src="tap.mp3"></audio>
     <audio id="perfectSound" src="perfect.mp3"></audio>
@@ -44,7 +42,6 @@
     <audio id="goodSound" src="good.mp3"></audio>
     <audio id="missSound" src="miss.mp3"></audio>
 
-    <!-- スクリプト -->
     <script src="script.js"></script>
 
 </body>

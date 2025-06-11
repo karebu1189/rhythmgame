@@ -17,6 +17,7 @@ let gameRunning = false;
 let laneCount = 6;
 let difficulty = 'normal';
 let spawnInterval;
+let effects = \[];
 
 const difficulties = {
 easy: { noteSpeed: 3, spawnRate: 800 },
@@ -37,7 +38,7 @@ let startX = (canvas.width - totalWidth) / 2 + laneWidth / 2;
 ```
 for (let i = 0; i < count; i++) {
     lanes.push(startX + i * laneWidth);
-    laneKeys.push(String.fromCharCode(65 + i)); // A, B, C, ...
+    laneKeys.push(String.fromCharCode(65 + i));
 }
 ```
 
@@ -97,6 +98,7 @@ for (let i = 0; i < notes.length; i++) {
         notes.splice(i, 1);
         score += 100;
         scoreDisplay.innerText = score;
+        effects.push({ x: note.x, y: note.y, timer: 15 });
         break;
     }
 }
@@ -116,6 +118,7 @@ if (keyIndex !== -1) {
             notes.splice(i, 1);
             score += 100;
             scoreDisplay.innerText = score;
+            effects.push({ x: note.x, y: note.y, timer: 15 });
             break;
         }
     }
@@ -129,7 +132,7 @@ ctx.fillStyle = 'black';
 ctx.fillRect(0, 0, canvas.width, canvas.height);
 
 ```
-ctx.strokeStyle = 'gray';
+ctx.strokeStyle = 'white';
 lanes.forEach(lane => {
     ctx.beginPath();
     ctx.moveTo(lane, 0);
@@ -148,6 +151,15 @@ lanes.forEach((lane, index) => {
     ctx.fillText(laneKeys[index], lane - 5, canvas.height - 10);
 });
 
+effects.forEach((effect, index) => {
+    ctx.strokeStyle = 'cyan';
+    ctx.beginPath();
+    ctx.arc(effect.x + 25, effect.y + 25, 30 - effect.timer, 0, 2 * Math.PI);
+    ctx.stroke();
+    effect.timer--;
+    if (effect.timer <= 0) effects.splice(index, 1);
+});
+
 notes = notes.filter(note => note.y <= canvas.height + 50);
 
 if (gameRunning) {
@@ -156,6 +168,28 @@ if (gameRunning) {
 ```
 
 }
+
+canvas.addEventListener('touchstart', function (event) {
+if (!gameRunning) return;
+
+```
+const rect = canvas.getBoundingClientRect();
+const touchX = event.touches[0].clientX - rect.left;
+const touchY = event.touches[0].clientY - rect.top;
+
+for (let i = 0; i < notes.length; i++) {
+    let note = notes[i];
+    if (touchX >= note.x && touchX <= note.x + 50 && touchY >= note.y && touchY <= note.y + 50) {
+        notes.splice(i, 1);
+        score += 100;
+        scoreDisplay.innerText = score;
+        effects.push({ x: note.x, y: note.y, timer: 15 });
+        break;
+    }
+}
+```
+
+});
 
 function setDifficulty(newDifficulty) {
 difficulty = newDifficulty;

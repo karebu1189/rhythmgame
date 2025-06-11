@@ -2,38 +2,14 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8" />
-    <title>リズムゲーム</title>
+    <title>リズムゲーム（8レーン対応）</title>
     <style>
-        body {
-            margin: 0;
-            font-family: Arial, sans-serif;
-            background-color: black;
-            color: white;
-        }
-        #titleScreen, #gameScreen, #resultScreen {
-            display: none;
-            justify-content: center;
-            align-items: center;
-            flex-direction: column;
-            height: 100vh;
-        }
-        #titleScreen {
-            display: flex;
-        }
-        .songItem {
-            margin: 5px;
-            cursor: pointer;
-        }
-        canvas {
-            background-color: black;
-            display: block;
-        }
-        button {
-            margin: 10px;
-            padding: 10px 20px;
-            font-size: 16px;
-            cursor: pointer;
-        }
+        body { margin: 0; font-family: Arial, sans-serif; background-color: black; color: white; }
+        #titleScreen, #gameScreen, #resultScreen { display: none; justify-content: center; align-items: center; flex-direction: column; height: 100vh; }
+        #titleScreen { display: flex; }
+        .songItem { margin: 5px; cursor: pointer; }
+        canvas { background-color: black; display: block; }
+        button { margin: 10px; padding: 10px 20px; font-size: 16px; cursor: pointer; }
     </style>
 </head>
 <body>
@@ -52,25 +28,36 @@
             <option value="hard">Hard</option>
         </select>
 
+        <h2>レーン数選択</h2>
+        <select id="laneCountSelector">
+            <option value="4">4レーン</option>
+            <option value="5">5レーン</option>
+            <option value="6">6レーン</option>
+            <option value="7">7レーン</option>
+            <option value="8" selected>8レーン</option>
+        </select>
+
         <button id="startGameButton">スタート</button>
     </div>
 
     <!-- ゲーム画面 -->
-    <div id="gameScreen">
+    <div id="gameScreen" style="display:none;">
         <canvas id="gameCanvas"></canvas>
-        <button id="retryButton">リトライ</button>
-        <button id="gameBackButton">タイトルに戻る</button>
+        <div>
+            <button id="retryButton">リトライ</button>
+            <button id="backButton">タイトルに戻る</button>
+        </div>
     </div>
 
     <!-- リザルト画面 -->
-    <div id="resultScreen">
+    <div id="resultScreen" style="display:none;">
         <h2>結果</h2>
         <p id="finalScore"></p>
         <p id="finalRank"></p>
-        <button id="resultBackButton">タイトルに戻る</button>
+        <button id="backToTitleButton">タイトルに戻る</button>
     </div>
 
-    <!-- サウンド読み込み -->
+    <!-- サウンド -->
     <audio id="bgm"></audio>
     <audio id="tapSound" src="https://actions.google.com/sounds/v1/cartoon/wood_plank_flicks.ogg"></audio>
     <audio id="perfectSound" src="https://actions.google.com/sounds/v1/cartoon/clang_and_wobble.ogg"></audio>

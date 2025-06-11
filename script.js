@@ -1,5 +1,6 @@
-document.addEventListener('DOMContentLoaded', () => {
+// 完全プロセカ風 判定強化版
 
+document.addEventListener('DOMContentLoaded', () => {
     // 画面要素
     const titleScreen = document.getElementById('titleScreen');
     const gameScreen = document.getElementById('gameScreen');
@@ -51,7 +52,9 @@ document.addEventListener('DOMContentLoaded', () => {
     let noteSpeed = difficulties.normal.noteSpeed;
     let noteSpawnRate = difficulties.normal.spawnRate;
 
-    // 曲選択画面作成
+    let judgeLineFlashTimer = 0;
+    let judgeLineFlashColor = 'transparent';
+
     songs.forEach(song => {
         const songButton = document.createElement('div');
         songButton.className = 'songItem';
@@ -64,7 +67,6 @@ document.addEventListener('DOMContentLoaded', () => {
         songList.appendChild(songButton);
     });
 
-    // 画面遷移
     startGameButton.onclick = () => {
         const difficulty = difficultySelector.value;
         noteSpeed = difficulties[difficulty].noteSpeed;
@@ -84,7 +86,6 @@ document.addEventListener('DOMContentLoaded', () => {
         location.reload();
     };
 
-    // 全画面対応
     window.addEventListener('resize', () => {
         canvas.width = window.innerWidth;
         canvas.height = window.innerHeight;
@@ -131,9 +132,14 @@ document.addEventListener('DOMContentLoaded', () => {
         ctx.fillStyle = 'black';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-        // 判定ライン
-        ctx.fillStyle = 'cyan';
-        ctx.fillRect(0, canvas.height - 100, canvas.width, 5);
+        // 判定ライン（光る演出）
+        if (judgeLineFlashTimer > 0) {
+            ctx.fillStyle = judgeLineFlashColor;
+            judgeLineFlashTimer--;
+        } else {
+            ctx.fillStyle = 'cyan';
+        }
+        ctx.fillRect(0, canvas.height - 100, canvas.width, 10);
 
         // レーン表示
         ctx.strokeStyle = 'white';
@@ -211,28 +217,46 @@ document.addEventListener('DOMContentLoaded', () => {
         let hitLine = canvas.height - 100;
         let diff = Math.abs(noteY - hitLine);
 
-        if (diff <= 22.5) return { text: 'Perfect', color: 'gold', sound: perfectSound };
-        else if (diff <= 50) return { text: 'Great', color: 'blue', sound: greatSound };
-        else if (diff <= 80) return { text: 'Good', color: 'green', sound: goodSound };
+        if (diff <= 15) return { text: 'Perfect', color: 'gold', sound: perfectSound };
+        else if (diff <= 40) return { text: 'Great', color: 'deepskyblue', sound: greatSound };
+        else if (diff <= 75) return { text: 'Good', color: 'lime', sound: goodSound };
         else return { text: 'Miss', color: 'red', sound: missSound };
     }
 
     function handleHit(note, index) {
         let judge = getJudge(note.y);
         notes.splice(index, 1);
-        if (judge.text !== 'Miss') {
-            score += 100;
-            combo++;
-            tapSound.currentTime = 0;
-            tapSound.play();
-        } else {
-            combo = 0;
+
+        switch (judge.text) {
+            case 'Perfect':
+                score += 300;
+                combo++;
+                break;
+            case 'Great':
+                score += 200;
+                combo++;
+                break;
+            case 'Good':
+                score += 100;
+                combo++;
+                break;
+            case 'Miss':
+                combo = 0;
+                break;
         }
+
         judge.sound.currentTime = 0;
         judge.sound.play();
 
         judgeEffects.push({ text: judge.text, color: judge.color, x: note.x, y: note.y, timer: 30 });
         effects.push({ x: note.x, y: note.y, timer: 15 });
+
+        flashJudgeLine(judge.color);
+    }
+
+    function flashJudgeLine(color) {
+        judgeLineFlashTimer = 10;
+        judgeLineFlashColor = color;
     }
 
     canvas.addEventListener('click', function (event) {
@@ -281,5 +305,4 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
     });
-
 });

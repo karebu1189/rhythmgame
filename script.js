@@ -1,3 +1,8 @@
+const songs = [
+    { title: 'メデ', file: 'メデ.mp3' },
+    { title: '曲2', file: 'song2.mp3' },
+    { title: '曲3', file: 'song3.mp3' }
+];
 document.addEventListener('DOMContentLoaded', () => {
 
 const canvas = document.getElementById('gameCanvas');

@@ -2,123 +2,50 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <title>リズムゲーム</title>
-    <style>
-        body {
-            margin: 0;
-            overflow: hidden;
-            font-family: 'Arial', sans-serif;
-            background: linear-gradient(135deg, #0f0f0f, #1e1e1e);
-            animation: backgroundMove 10s infinite linear;
-        }
-
-        @keyframes backgroundMove {
-            0% { background-position: 0% 50%; }
-            100% { background-position: 100% 50%; }
-        }
-
-        #titleScreen, #songSelectScreen, #gameScreen, #resultScreen {
-            display: none;
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            color: white;
-            text-align: center;
-            justify-content: center;
-            align-items: center;
-            flex-direction: column;
-        }
-
-        #titleScreen, #songSelectScreen {
-            display: flex;
-        }
-
-        h1 {
-            font-size: 60px;
-            color: #00f0ff;
-            text-shadow: 0 0 20px #00f0ff;
-            margin-bottom: 30px;
-            animation: titleGlow 2s infinite alternate;
-        }
-
-        @keyframes titleGlow {
-            from { text-shadow: 0 0 10px #00f0ff; }
-            to { text-shadow: 0 0 30px #00f0ff; }
-        }
-
-        button {
-            font-size: 24px;
-            padding: 15px 40px;
-            margin: 10px;
-            border: none;
-            border-radius: 8px;
-            background: #00f0ff;
-            color: white;
-            cursor: pointer;
-            transition: transform 0.3s, box-shadow 0.3s;
-        }
-
-        button:hover {
-            transform: scale(1.1);
-            box-shadow: 0 0 20px #00f0ff;
-        }
-
-        .songItem {
-            margin: 10px;
-            cursor: pointer;
-            transition: transform 0.2s;
-        }
-
-        .songItem:hover {
-            transform: scale(1.1);
-            color: yellow;
-        }
-    </style>
+    <title>プロセカ風リズムゲーム</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
     <!-- タイトル画面 -->
     <div id="titleScreen">
-        <h1>Rhythm Game</h1>
-        <button id="toSongSelectButton">ゲームスタート</button>
-    </div>
-
-    <!-- 曲選択画面 -->
-    <div id="songSelectScreen" style="flex-direction: column;">
-        <h1>曲選択</h1>
+        <h1>プロセカ風リズムゲーム</h1>
         <div id="songList"></div>
+
         <label for="difficultySelector">難易度:</label>
         <select id="difficultySelector">
             <option value="easy">Easy</option>
             <option value="normal" selected>Normal</option>
             <option value="hard">Hard</option>
         </select>
-        <br>
-        <button id="startGameButton">スタート</button>
+
+        <button id="startGameButton">START</button>
     </div>
 
     <!-- ゲーム画面 -->
     <div id="gameScreen" style="display:none;">
         <canvas id="gameCanvas"></canvas>
-        <button id="retryButton">リトライ</button>
+        <button id="retryButton">RETRY</button>
     </div>
 
     <!-- リザルト画面 -->
     <div id="resultScreen" style="display:none;">
         <h1>リザルト</h1>
-        <p id="finalScore"></p>
-        <p id="finalRank"></p>
+        <h2 id="finalScore">スコア: 0</h2>
+        <h2 id="finalRank">ランク: C</h2>
         <button id="backButton">タイトルに戻る</button>
     </div>
 
-    <!-- 音楽・効果音（複数曲を用意する） -->
+    <!-- 音源 -->
     <audio id="bgm"></audio>
-    <audio id="tapSound" src="tap.wav"></audio>
-    <audio id="perfectSound" src="perfect.wav"></audio>
-    <audio id="greatSound" src="great.wav"></audio>
-    <audio id="goodSound" src="good.wav"></audio>
-    <audio id="missSound" src="miss.wav"></audio>
+    <audio id="tapSound" src="tap.mp3"></audio>
+    <audio id="perfectSound" src="perfect.mp3"></audio>
+    <audio id="greatSound" src="great.mp3"></audio>
+    <audio id="goodSound" src="good.mp3"></audio>
+    <audio id="missSound" src="miss.mp3"></audio>
 
+    <!-- スクリプト -->
     <script src="script.js"></script>
+
 </body>
 </html>

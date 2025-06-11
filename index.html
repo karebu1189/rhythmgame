@@ -1,15 +1,39 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-    <meta charset="UTF-8">
+    <meta charset="UTF-8" />
     <title>リズムゲーム</title>
     <style>
-        body { margin: 0; font-family: Arial, sans-serif; background-color: black; color: white; }
-        #titleScreen, #gameScreen, #resultScreen { display: none; justify-content: center; align-items: center; flex-direction: column; height: 100vh; }
-        #titleScreen { display: flex; }
-        .songItem { margin: 5px; cursor: pointer; }
-        canvas { background-color: black; display: block; }
-        button { margin: 10px; padding: 10px 20px; font-size: 16px; cursor: pointer; }
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background-color: black;
+            color: white;
+        }
+        #titleScreen, #gameScreen, #resultScreen {
+            display: none;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            height: 100vh;
+        }
+        #titleScreen {
+            display: flex;
+        }
+        .songItem {
+            margin: 5px;
+            cursor: pointer;
+        }
+        canvas {
+            background-color: black;
+            display: block;
+        }
+        button {
+            margin: 10px;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+        }
     </style>
 </head>
 <body>
@@ -35,7 +59,7 @@
     <div id="gameScreen">
         <canvas id="gameCanvas"></canvas>
         <button id="retryButton">リトライ</button>
-        <button id="backButton">タイトルに戻る</button>
+        <button id="gameBackButton">タイトルに戻る</button>
     </div>
 
     <!-- リザルト画面 -->
@@ -43,7 +67,7 @@
         <h2>結果</h2>
         <p id="finalScore"></p>
         <p id="finalRank"></p>
-        <button id="backButton">タイトルに戻る</button>
+        <button id="resultBackButton">タイトルに戻る</button>
     </div>
 
     <!-- サウンド読み込み -->
@@ -54,8 +78,7 @@
     <audio id="goodSound" src="https://actions.google.com/sounds/v1/cartoon/pop.ogg"></audio>
     <audio id="missSound" src="https://actions.google.com/sounds/v1/cartoon/slide_whistle_to_drum_hit.ogg"></audio>
 
-    <!-- スクリプト読み込み（必ず body の一番下） -->
+    <!-- スクリプト読み込み -->
     <script src="script.js"></script>
-
 </body>
 </html>

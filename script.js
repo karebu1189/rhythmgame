@@ -1,7 +1,5 @@
-// プロセカ風音ゲー完全版（8レーン可変・レーン選択UI付き）
 document.addEventListener('DOMContentLoaded', () => {
 
-    // 画面要素
     const titleScreen = document.getElementById('titleScreen');
     const gameScreen = document.getElementById('gameScreen');
     const resultScreen = document.getElementById('resultScreen');
@@ -33,7 +31,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let selectedSong = songs[0];
 
     let lanes = [];
-    let laneKeys = ['D', 'F', 'G', 'H', 'J', 'K', 'L', ';'];
+    const laneKeys = ['D', 'F', 'G', 'H', 'J', 'K', 'L', ';'];
     let notes = [];
     let effects = [];
     let judgeEffects = [];
@@ -41,6 +39,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let combo = 0;
     let gameRunning = false;
     let spawnInterval;
+    let animationId;
 
     const difficulties = {
         easy: { noteSpeed: 3, spawnRate: 800 },
@@ -51,6 +50,24 @@ document.addEventListener('DOMContentLoaded', () => {
     let noteSpeed = difficulties.normal.noteSpeed;
     let noteSpawnRate = difficulties.normal.spawnRate;
     let laneCount = 6;
+
+    function resizeCanvas() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        initializeLanes();
+    }
+    window.addEventListener('resize', resizeCanvas);
+
+    function initializeLanes() {
+        lanes = [];
+        let laneWidth = 60;
+        let totalWidth = laneWidth * laneCount;
+        let startX = (canvas.width - totalWidth) / 2 + laneWidth / 2;
+
+        for (let i = 0; i < laneCount; i++) {
+            lanes.push(startX + i * laneWidth);
+        }
+    }
 
     songs.forEach(song => {
         const songButton = document.createElement('div');
@@ -64,69 +81,52 @@ document.addEventListener('DOMContentLoaded', () => {
         songList.appendChild(songButton);
     });
 
-    startGameButton.onclick = () => {
-        const difficulty = difficultySelector.value;
-        noteSpeed = difficulties[difficulty].noteSpeed;
-        noteSpawnRate = difficulties[difficulty].spawnRate;
-        laneCount = parseInt(laneSelector.value);
-
-        titleScreen.style.display = 'none';
-        gameScreen.style.display = 'block';
-        startGame();
-    };
-
-    retryButton.onclick = () => {
-        clearInterval(spawnInterval);
-        location.reload();
-    };
-
-    backButton.onclick = () => {
-        location.reload();
-    };
-
-    window.addEventListener('resize', () => {
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
-    });
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-
-    function initializeLanes() {
-        lanes = [];
-        let laneWidth = 60;
-        let totalWidth = laneWidth * laneCount;
-        let startX = (canvas.width - totalWidth) / 2 + laneWidth / 2;
-
-        for (let i = 0; i < laneCount; i++) {
-            lanes.push(startX + i * laneWidth);
-        }
-    }
-
     function startGame() {
-        initializeLanes();
-        bgm.src = selectedSong.file;
-        bgm.play();
-        gameRunning = true;
         score = 0;
         combo = 0;
         notes = [];
+        effects = [];
+        judgeEffects = [];
+
+        gameRunning = true;
+        noteSpeed = difficulties[difficultySelector.value].noteSpeed;
+        noteSpawnRate = difficulties[difficultySelector.value].spawnRate;
+        laneCount = parseInt(laneSelector.value);
+
+        resizeCanvas();
+
+        titleScreen.style.display = 'none';
+        resultScreen.style.display = 'none';
+        gameScreen.style.display = 'block';
+
+        bgm.src = selectedSong.file;
+
+        // 音声再生はユーザーアクションが必要な場合あるので、play()の後にcatchで対処
+        bgm.play().catch(() => {
+            // iOS等で再生できなかった場合、ユーザーの次の操作で再生開始
+            document.body.addEventListener('touchstart', function playOnTouch() {
+                bgm.play();
+                document.body.removeEventListener('touchstart', playOnTouch);
+            });
+        });
 
         bgm.onended = () => {
             endGame();
         };
 
         spawnInterval = setInterval(() => {
-            if (gameRunning) {
-                let laneIndex = Math.floor(Math.random() * lanes.length);
-                let lane = lanes[laneIndex];
-                notes.push({ x: lane - 25, y: 0, laneIndex: laneIndex });
-            }
+            if (!gameRunning) return;
+            const laneIndex = Math.floor(Math.random() * laneCount);
+            const lane = lanes[laneIndex];
+            notes.push({ x: lane - 25, y: 0, laneIndex: laneIndex });
         }, noteSpawnRate);
 
+        if(animationId) cancelAnimationFrame(animationId);
         draw();
     }
 
     function draw() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
         ctx.fillStyle = 'black';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
@@ -152,8 +152,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // キー表示
         ctx.fillStyle = 'yellow';
+        ctx.font = '24px Arial';
         lanes.forEach((lane, index) => {
-            if (index < laneCount) {
+            if(index < laneCount){
                 ctx.fillText(laneKeys[index], lane - 5, canvas.height - 10);
             }
         });
@@ -164,7 +165,7 @@ document.addEventListener('DOMContentLoaded', () => {
             ctx.font = '30px Arial';
             ctx.fillText(effect.text, effect.x, effect.y);
             effect.timer--;
-            if (effect.timer <= 0) judgeEffects.splice(index, 1);
+            if(effect.timer <= 0) judgeEffects.splice(index, 1);
         });
 
         // ノーツエフェクト
@@ -174,7 +175,7 @@ document.addEventListener('DOMContentLoaded', () => {
             ctx.arc(effect.x + 25, effect.y + 25, 30 - effect.timer, 0, 2 * Math.PI);
             ctx.stroke();
             effect.timer--;
-            if (effect.timer <= 0) effects.splice(index, 1);
+            if(effect.timer <= 0) effects.splice(index, 1);
         });
 
         // スコアとコンボ表示
@@ -183,21 +184,27 @@ document.addEventListener('DOMContentLoaded', () => {
         ctx.fillText('Score: ' + score, 20, 40);
         ctx.fillText('Combo: ' + combo, 20, 80);
 
+        // ノーツ画面外の削除
         notes = notes.filter(note => note.y <= canvas.height + 50);
 
         if (gameRunning) {
-            requestAnimationFrame(draw);
+            animationId = requestAnimationFrame(draw);
         }
     }
 
     function endGame() {
         gameRunning = false;
         clearInterval(spawnInterval);
+        if(animationId) cancelAnimationFrame(animationId);
+
         gameScreen.style.display = 'none';
         resultScreen.style.display = 'block';
 
         document.getElementById('finalScore').innerText = 'スコア: ' + score;
         document.getElementById('finalRank').innerText = 'ランク: ' + getRank(score);
+
+        bgm.pause();
+        bgm.currentTime = 0;
     }
 
     function getRank(score) {
@@ -222,64 +229,4 @@ document.addEventListener('DOMContentLoaded', () => {
         let judge = getJudge(note.y);
         notes.splice(index, 1);
         if (judge.text !== 'Miss') {
-            score += 100;
-            combo++;
-            tapSound.currentTime = 0;
-            tapSound.play();
-        } else {
-            combo = 0;
-        }
-        judge.sound.currentTime = 0;
-        judge.sound.play();
-
-        judgeEffects.push({ text: judge.text, color: judge.color, x: note.x, y: note.y, timer: 30 });
-        effects.push({ x: note.x, y: note.y, timer: 15 });
-    }
-
-    canvas.addEventListener('click', function (event) {
-        if (!gameRunning) return;
-
-        const rect = canvas.getBoundingClientRect();
-        const clickX = event.clientX - rect.left;
-        const clickY = event.clientY - rect.top;
-
-        for (let i = 0; i < notes.length; i++) {
-            let note = notes[i];
-            if (clickX >= note.x && clickX <= note.x + 50 && clickY >= note.y && clickY <= note.y + 50) {
-                handleHit(note, i);
-                break;
-            }
-        }
-    });
-
-    window.addEventListener('keydown', function (event) {
-        if (!gameRunning) return;
-
-        const keyIndex = laneKeys.indexOf(event.key.toUpperCase());
-        if (keyIndex !== -1 && keyIndex < laneCount) {
-            for (let i = 0; i < notes.length; i++) {
-                let note = notes[i];
-                if (note.laneIndex === keyIndex && note.y >= canvas.height - 120 && note.y <= canvas.height - 20) {
-                    handleHit(note, i);
-                    break;
-                }
-            }
-        }
-    });
-
-    canvas.addEventListener('touchstart', function (event) {
-        if (!gameRunning) return;
-
-        const rect = canvas.getBoundingClientRect();
-        const touchX = event.touches[0].clientX - rect.left;
-        const touchY = event.touches[0].clientY - rect.top;
-
-        for (let i = 0; i < notes.length; i++) {
-            let note = notes[i];
-            if (touchX >= note.x && touchX <= note.x + 50 && touchY >= note.y && touchY <= note.y + 50) {
-                handleHit(note, i);
-                break;
-            }
-        }
-    });
-});
+           

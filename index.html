@@ -38,7 +38,15 @@
     <audio id="bgm" src="メデ.mp3"></audio>
 
     <!-- JavaScript読み込み -->
-    <script src="script.js"></script>
+    <script src="script.js"></script><script>
+document.addEventListener('DOMContentLoaded', () => {
+    const startButton = document.getElementById('startButton');
+    startButton.onclick = () => {
+        alert('スタートボタンが押されました！');
+    };
+});
+</script>
+
 
 </body>
 </html>

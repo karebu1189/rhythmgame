@@ -3,41 +3,42 @@
 <head>
     <meta charset="UTF-8">
     <title>Rhythm Game</title>
-    <link rel="stylesheet" href="style.css">
 </head>
 <body>
+
+    <!-- スタート画面 -->
     <div id="startScreen">
         <h1>Rhythm Game</h1>
+
+        <label for="difficultySelector">難易度:</label>
+        <select id="difficultySelector">
+            <option value="easy">Easy</option>
+            <option value="normal" selected>Normal</option>
+            <option value="hard">Hard</option>
+        </select>
+
+        <label for="laneSelector">レーン数:</label>
+        <select id="laneSelector">
+            <option value="4">4</option>
+            <option value="5">5</option>
+            <option value="6" selected>6</option>
+        </select>
+
         <button id="startButton">START</button>
     </div>
 
+    <!-- ゲーム画面 -->
     <div id="gameScreen" style="display:none;">
         <h1>Score: <span id="score">0</span></h1>
         <canvas id="gameCanvas" width="600" height="600"></canvas>
         <button id="retryButton">RETRY</button>
     </div>
 
+    <!-- 音楽 -->
     <audio id="bgm" src="メデ.mp3"></audio>
 
+    <!-- JavaScript読み込み -->
     <script src="script.js"></script>
+
 </body>
 </html>
-<div id="startScreen">
-    <h1>Rhythm Game</h1>
-
-    <label for="difficultySelector">難易度:</label>
-    <select id="difficultySelector">
-        <option value="easy">Easy</option>
-        <option value="normal" selected>Normal</option>
-        <option value="hard">Hard</option>
-    </select>
-
-    <label for="laneSelector">レーン数:</label>
-    <select id="laneSelector">
-        <option value="4">4</option>
-        <option value="5">5</option>
-        <option value="6" selected>6</option>
-    </select>
-
-    <button id="startButton">START</button>
-</div>

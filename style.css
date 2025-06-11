@@ -1,4 +1,4 @@
-body { font-family: sans-seribody {
+body {
     font-family: sans-serif;
     text-align: center;
     background-color: #000;
@@ -10,4 +10,10 @@ canvas {
     display: block;
     margin: 0 auto;
 }
-f; text-align: center; background-color: #000; color: #fff; }
+
+button {
+    padding: 10px 20px;
+    font-size: 18px;
+    cursor: pointer;
+    margin-top: 20px;
+}

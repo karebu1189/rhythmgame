@@ -1,13 +1,12 @@
 document.addEventListener('DOMContentLoaded', () => {
 
+    // 画面要素
     const titleScreen = document.getElementById('titleScreen');
     const gameScreen = document.getElementById('gameScreen');
     const resultScreen = document.getElementById('resultScreen');
 
     const songList = document.getElementById('songList');
     const difficultySelector = document.getElementById('difficultySelector');
-    const laneSelector = document.getElementById('laneSelector'); // 追加（レーン数選択）
-
     const startGameButton = document.getElementById('startGameButton');
 
     const canvas = document.getElementById('gameCanvas');
@@ -23,7 +22,16 @@ document.addEventListener('DOMContentLoaded', () => {
     const retryButton = document.getElementById('retryButton');
     const backButton = document.getElementById('backButton');
 
-    let selectedSong = { title: 'メデ', file: 'メデ.mp3' };
+    // 曲データ
+    const songs = [
+        { title: 'メデ', file: 'メデ.mp3' },
+        { title: '曲2', file: 'song2.mp3' },
+        { title: '曲3', file: 'song3.mp3' }
+    ];
+
+    let selectedSong = songs[0];
+
+    // ゲームデータ
     let lanes = [];
     let laneKeys = ['D', 'F', 'G', 'J', 'K', 'L'];
     let notes = [];
@@ -33,7 +41,6 @@ document.addEventListener('DOMContentLoaded', () => {
     let combo = 0;
     let gameRunning = false;
     let spawnInterval;
-    let laneCount = 6; // 初期値
 
     const difficulties = {
         easy: { noteSpeed: 3, spawnRate: 800 },
@@ -44,12 +51,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let noteSpeed = difficulties.normal.noteSpeed;
     let noteSpawnRate = difficulties.normal.spawnRate;
 
-    const songs = [
-        { title: 'メデ', file: 'メデ.mp3' },
-        { title: '曲2', file: 'song2.mp3' },
-        { title: '曲3', file: 'song3.mp3' }
-    ];
-
+    // 曲選択画面作成
     songs.forEach(song => {
         const songButton = document.createElement('div');
         songButton.className = 'songItem';
@@ -62,8 +64,8 @@ document.addEventListener('DOMContentLoaded', () => {
         songList.appendChild(songButton);
     });
 
+    // 画面遷移
     startGameButton.onclick = () => {
-        laneCount = parseInt(laneSelector.value); // レーン数を取得
         const difficulty = difficultySelector.value;
         noteSpeed = difficulties[difficulty].noteSpeed;
         noteSpawnRate = difficulties[difficulty].spawnRate;
@@ -82,6 +84,7 @@ document.addEventListener('DOMContentLoaded', () => {
         location.reload();
     };
 
+    // 全画面対応
     window.addEventListener('resize', () => {
         canvas.width = window.innerWidth;
         canvas.height = window.innerHeight;
@@ -92,10 +95,10 @@ document.addEventListener('DOMContentLoaded', () => {
     function initializeLanes() {
         lanes = [];
         let laneWidth = 60;
-        let totalWidth = laneWidth * laneCount;
+        let totalWidth = laneWidth * 6;
         let startX = (canvas.width - totalWidth) / 2 + laneWidth / 2;
 
-        for (let i = 0; i < laneCount; i++) {
+        for (let i = 0; i < 6; i++) {
             lanes.push(startX + i * laneWidth);
         }
     }
@@ -128,9 +131,11 @@ document.addEventListener('DOMContentLoaded', () => {
         ctx.fillStyle = 'black';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
+        // 判定ライン
         ctx.fillStyle = 'cyan';
         ctx.fillRect(0, canvas.height - 100, canvas.width, 5);
 
+        // レーン表示
         ctx.strokeStyle = 'white';
         lanes.forEach(lane => {
             ctx.beginPath();
@@ -139,19 +144,20 @@ document.addEventListener('DOMContentLoaded', () => {
             ctx.stroke();
         });
 
+        // ノーツ表示
         ctx.fillStyle = 'white';
         notes.forEach(note => {
             ctx.fillRect(note.x, note.y, 50, 50);
             note.y += noteSpeed;
         });
 
+        // キー表示
         ctx.fillStyle = 'yellow';
         lanes.forEach((lane, index) => {
-            if (index < laneKeys.length) {
-                ctx.fillText(laneKeys[index], lane - 5, canvas.height - 10);
-            }
+            ctx.fillText(laneKeys[index], lane - 5, canvas.height - 10);
         });
 
+        // 判定エフェクト
         judgeEffects.forEach((effect, index) => {
             ctx.fillStyle = effect.color;
             ctx.font = '30px Arial';
@@ -160,6 +166,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (effect.timer <= 0) judgeEffects.splice(index, 1);
         });
 
+        // ノーツエフェクト
         effects.forEach((effect, index) => {
             ctx.strokeStyle = 'cyan';
             ctx.beginPath();
@@ -169,6 +176,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (effect.timer <= 0) effects.splice(index, 1);
         });
 
+        // スコアとコンボ表示
         ctx.fillStyle = 'white';
         ctx.font = '24px Arial';
         ctx.fillText('Score: ' + score, 20, 40);
@@ -247,7 +255,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!gameRunning) return;
 
         const keyIndex = laneKeys.indexOf(event.key.toUpperCase());
-        if (keyIndex !== -1 && keyIndex < laneCount) {
+        if (keyIndex !== -1) {
             for (let i = 0; i < notes.length; i++) {
                 let note = notes[i];
                 if (note.laneIndex === keyIndex && note.y >= canvas.height - 120 && note.y <= canvas.height - 20) {

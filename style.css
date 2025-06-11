@@ -1,20 +1,95 @@
-body {
+* {
     margin: 0;
-    background-color: black;
-    color: white;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body, html {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
     font-family: 'Arial', sans-serif;
+}
+
+#titleScreen {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: linear-gradient(135deg, #a0d8f1, #ffffff);
+    width: 100vw;
+    height: 100vh;
+    animation: bgMove 10s infinite linear;
+}
+
+@keyframes bgMove {
+    0% {background-position: 0% 50%;}
+    50% {background-position: 100% 50%;}
+    100% {background-position: 0% 50%;}
+}
+
+.phone-frame {
+    border: 8px solid #ccc;
+    border-radius: 30px;
+    padding: 40px;
+    background-color: rgba(255, 255, 255, 0.7);
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
     text-align: center;
 }
 
-#songList {
-    margin: 20px 0;
+.game-title {
+    font-size: 48px;
+    color: #333;
+    animation: fadeIn 2s ease;
+}
+
+.start-button {
+    margin-top: 20px;
+    padding: 10px 30px;
+    font-size: 24px;
+    border: none;
+    border-radius: 20px;
+    background: linear-gradient(90deg, #00c3ff, #77e0ff);
+    color: white;
+    cursor: pointer;
+    animation: fadeIn 3s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+#gameScreen, #resultScreen {
+    display: none;
+    justify-content: center;
+    align-items: center;
+    width: 100vw;
+    height: 100vh;
+    background: #000;
+}
+
+canvas {
+    background: radial-gradient(circle at center, #e0f7fa, #b3e5fc);
+    animation: canvasAnim 20s infinite alternate;
+}
+
+@keyframes canvasAnim {
+    0% { filter: hue-rotate(0deg); }
+    100% { filter: hue-rotate(360deg); }
+}
+
+#resultScreen {
+    flex-direction: column;
+    color: white;
+    font-size: 36px;
+    text-align: center;
 }
 
 .songItem {
     cursor: pointer;
-    margin: 5px 0;
+    margin: 10px;
 }
 
-canvas {
-    display: block;
+select, button {
+    margin: 10px;
 }

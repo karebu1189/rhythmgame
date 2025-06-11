@@ -142,7 +142,10 @@ function setDifficulty(newDifficulty) {
 }
 
 function setLaneCount(newCount) {
+    laneCount = newCount;function setLaneCount(newCount) {
     laneCount = newCount;
+}
+
 }
 
 initializeLanes(laneCount);

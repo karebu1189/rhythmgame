@@ -1,3 +1,4 @@
+// DOMContentLoaded イベント
 document.addEventListener('DOMContentLoaded', () => {
     const titleScreen = document.getElementById('titleScreen');
     const gameScreen = document.getElementById('gameScreen');
@@ -20,8 +21,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const backButtonResult = document.getElementById('backButtonResult');
 
     const songs = [
-        { title: 'メデ', file: 'メデ.mp3' },
-        { title: '曲2', file: 'df327b38-4181-4d81-b13f-a4490a28cbf1.mp3' }
+        { title: 'メデ', file: 'mede.mp3' },
+        { title: '曲2', file: 'song2.mp3' }
     ];
 
     let selectedSong = songs[0];
@@ -72,7 +73,6 @@ document.addEventListener('DOMContentLoaded', () => {
     refreshSongList();
 
     startGameButton.onclick = () => {
-        console.log('Startボタンが押されました');
         const difficulty = difficultySelector.value;
         noteSpeed = difficulties[difficulty].noteSpeed;
         noteSpawnRate = difficulties[difficulty].spawnRate;
@@ -116,42 +116,9 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    function createParticle() {
-        return {
-            x: Math.random() * canvas.width,
-            y: Math.random() * canvas.height,
-            radius: Math.random() * 2 + 1,
-            alpha: Math.random() * 0.5 + 0.1,
-            speedX: (Math.random() - 0.5) * 0.3,
-            speedY: (Math.random() - 0.5) * 0.3,
-            color: `rgba(0, 200, 255, ${Math.random() * 0.5 + 0.3})`
-        };
-    }
-
-    function initParticles(count = 100) {
-        particles = [];
-        for (let i = 0; i < count; i++) {
-            particles.push(createParticle());
-        }
-    }
-
-    function updateParticles() {
-        particles.forEach(p => {
-            p.x += p.speedX;
-            p.y += p.speedY;
-
-            if (p.x < 0 || p.x > canvas.width) p.speedX *= -1;
-            if (p.y < 0 || p.y > canvas.height) p.speedY *= -1;
-        });
-    }
-
-    function drawParticles() {
-        particles.forEach(p => {
-            ctx.beginPath();
-            ctx.arc(p.x, p.y, p.radius, 0, 2 * Math.PI);
-            ctx.fillStyle = p.color;
-            ctx.fill();
-        });
+    function spawnNote() {
+        let laneIndex = Math.floor(Math.random() * 8);
+        notes.push(new Note(laneIndex));
     }
 
     class Note {
@@ -165,7 +132,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         update() {
             this.y += this.speed;
-            if (this.y > canvas.height && !this.judged) {
+            if (this.y > canvas.height + 20 && !this.judged) {
                 this.miss();
                 this.judged = true;
             }
@@ -214,17 +181,11 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    function spawnNote() {
-        let laneIndex = Math.floor(Math.random() * 8);
-        notes.push(new Note(laneIndex));
-    }
-
     function startGame() {
         score = 0;
         combo = 0;
         notes = [];
         judgeEffects = [];
-        initParticles();
         initializeLanes();
 
         bgm.src = selectedSong.file;
@@ -317,9 +278,6 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!gameRunning) return;
 
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-        drawParticles();
-        updateParticles();
 
         drawLanes();
 

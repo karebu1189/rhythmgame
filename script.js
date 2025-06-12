@@ -327,15 +327,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
         gameRunning = true;
 
-        bgm.onloadedmetadata = () => {
-            bgm.play();
-            startNoteSpawning();
+       bgm.onloadedmetadata = () => {
+    bgm.play();
+    startNoteSpawning();
+};
 
-            setTimeout(() => {
-                stopGame();
-                showResult();
-            }, bgm.duration * 1000);
-        };
+bgm.onended = () => {
+    stopGame();
+    showResult();
+};
+
 
         gameLoop();
         showScreen('gameScreen');

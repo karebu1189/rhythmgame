@@ -97,3 +97,19 @@ select {
 .rank-A { color: #33cc33; }
 .rank-B { color: #ffcc00; }
 .rank-C { color: #999; }
+.start-button, .control-button {
+    background: linear-gradient(145deg, #ffcb05, #ffc400);
+    color: #222;
+    font-weight: bold;
+    padding: 14px 24px;
+    font-size: 1.1rem;
+    margin: 10px;
+    border-radius: 12px;
+    border: none;
+    box-shadow: 0 4px 0 #b89400;
+    transition: all 0.2s ease;
+}
+.start-button:hover, .control-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 6px rgba(0, 0, 0, 0.2);
+}

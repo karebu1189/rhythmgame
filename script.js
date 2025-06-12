@@ -1,4 +1,3 @@
-あなた:
 document.addEventListener('DOMContentLoaded', () => {
     // --- DOM要素 ---
     const titleScreen = document.getElementById('titleScreen');
@@ -45,12 +44,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- 曲リスト ---
     const songs = [
-        { title: 'メデ', file: 'メデ.mp3', bpm: 172 },
-        { title: 'トンデモワンダーズ', file: 'トンデモワンダーズ.mp3', bpm: 172 },
-        { title: 'テトリス', file: 'テトリス.mp3', bpm: 170 },
-        { title: 'マーシャル・マキシマイザー', file: 'マーシャル・マキシマイザー.mp3', bpm: 135 },
-        { title: 'スマイル_シンフォニー', file: 'スマイル_シンフォニー.mp3', bpm: 150 },
-        { title: 'ラグトレイン', file: 'ラグトレイン.mp3', bpm: 125 },
+        { title: 'メデ', file: 'メデ.mp3', bpm: 140 },
+        { title: 'トンデモワンダーズ', file: 'トンデモワンダーズ.mp3', bpm: 150 },
+        { title: 'テトリス', file: 'テトリス.mp3', bpm: 120 },
+        { title: 'マーシャル・マキシマイザー', file: 'マーシャル・マキシマイザー.mp3', bpm: 160 },
+        { title: 'ブリキノダンス', file: 'ブリキノダンス.mp3', bpm: 160 },
+        { title: 'シャルル', file: 'シャルル.mp3', bpm: 145 },
         { title: 'グッバイ宣言', file: 'グッバイ宣言.mp3', bpm: 160 },
         { title: 'ドラマツルギー', file: 'ドラマツルギー.mp3', bpm: 150 },
         { title: 'KING', file: 'KING.mp3', bpm: 166 },
@@ -289,7 +288,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         tapEffects.forEach((e, idx) => {
-            ctx.strokeStyle = rgba(255,255,255,${1 - e.frame / 15});
+            ctx.strokeStyle = `rgba(255,255,255,${1 - e.frame / 15})`;
             ctx.lineWidth = 4;
             ctx.beginPath();
             ctx.arc(e.x, e.y, 20 + e.frame * 3, 0, Math.PI * 2);
@@ -328,16 +327,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
         gameRunning = true;
 
-       bgm.onloadedmetadata = () => {
-    bgm.play();
-    startNoteSpawning();
-};
+        bgm.onloadedmetadata = () => {
+            bgm.play();
+            startNoteSpawning();
 
-bgm.onended = () => {
-    stopGame();
-    showResult();
-};
-
+            setTimeout(() => {
+                stopGame();
+                showResult();
+            }, bgm.duration * 1000);
+        };
 
         gameLoop();
         showScreen('gameScreen');

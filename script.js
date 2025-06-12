@@ -1,27 +1,16 @@
-// 完全統合版プロセカ風音ゲーコード
-
-// HTML 側で必要な要素（例）:
-// <div id="titleScreen">...</div>
-// <div id="gameScreen">...</div>
-// <div id="resultScreen">...</div>
-// <select id="difficultySelector">...</select>
-// <select id="laneSelector">...</select>
-// <div id="songList"></div>
-// <button id="startGameButton"></button>
-// <audio id="bgm"></audio>
-// (他の必要な要素は既存の構造を参照)
-
-// JavaScript
-
 document.addEventListener('DOMContentLoaded', () => {
+    // --- DOM要素 ---
     const titleScreen = document.getElementById('titleScreen');
     const gameScreen = document.getElementById('gameScreen');
     const resultScreen = document.getElementById('resultScreen');
 
     const songList = document.getElementById('songList');
     const difficultySelector = document.getElementById('difficultySelector');
-    const laneSelector = document.getElementById('laneSelector');
     const startGameButton = document.getElementById('startGameButton');
+
+    const retryButton = document.getElementById('retryButton');
+    const backButton = document.getElementById('backButton');
+    const backButtonResult = document.getElementById('backButtonResult');
 
     const canvas = document.getElementById('gameCanvas');
     const ctx = canvas.getContext('2d');
@@ -33,313 +22,393 @@ document.addEventListener('DOMContentLoaded', () => {
     const goodSound = document.getElementById('goodSound');
     const missSound = document.getElementById('missSound');
 
-    const retryButton = document.getElementById('retryButton');
-    const backButton = document.getElementById('backButton');
-    const backButtonResult = document.getElementById('backButtonResult');
-
-    let selectedSong = { title: 'メデ', file: 'メデ.mp3' };
-
-    let lanes = [];
+    // --- 定数 ---
     const laneKeys = ['D', 'F', 'G', 'H', 'J', 'K', 'L', ';'];
+    const BASE_LANE_WIDTH = 60;
+
+    // --- ゲーム状態 ---
+    let selectedSong = null;
+    let lanes = [];
     let notes = [];
-    let effects = [];
     let judgeEffects = [];
+    let effects = [];
+
     let score = 0;
     let combo = 0;
     let gameRunning = false;
-    let spawnInterval;
+    let spawnInterval = null;
+    let noteSpeed = 5;
+    let noteSpawnRate = 400;  // ms
 
-    const difficulties = {
-        easy: { noteSpeed: 3 },
-        normal: { noteSpeed: 5 },
-        hard: { noteSpeed: 7 }
-    };
-
-    let noteSpeed = difficulties.normal.noteSpeed;
-    let noteSpawnRate = 400;
-    let LANE_COUNT = 8;
-
+    // --- 曲リスト ---
     const songs = [
-        { title: 'メデ', file: 'メデ.mp3' },
-        { title: 'トンデモワンダーズ', file: 'トンデモワンダーズ.mp3' },
-        { title: 'テトリス', file: 'テトリス.mp3' },
-        { title: 'マーシャル・マキシマイザー', file: 'マーシャル・マキシマイザー.mp3' },
-        { title: 'ブリキノダンス', file: 'ブリキノダンス.mp3' },
-        { title: 'シャルル', file: 'シャルル.mp3' },
-        { title: 'グッバイ宣言', file: 'グッバイ宣言.mp3' },
-        { title: 'ドラマツルギー', file: 'ドラマツルギー.mp3' },
-        { title: 'KING', file: 'KING.mp3' },
-        { title: 'ビターチョコデコレーション', file: 'ビターチョコデコレーション.mp3' },
-        { title: 'ロウワー', file: 'ロウワー.mp3' },
-        { title: '夜に駆ける', file: '夜に駆ける.mp3' },
-        { title: 'マトリョシカ', file: 'マトリョシカ.mp3' },
-        { title: '千本桜', file: '千本桜.mp3' },
-        { title: 'ヒバナ', file: 'ヒバナ.mp3' },
-        { title: '命に嫌われている', file: '命に嫌われている.mp3' },
-        { title: 'エンヴィーベイビー', file: 'エンヴィーベイビー.mp3' },
-        { title: 'ベノム', file: 'ベノム.mp3' },
-        { title: '乙女解剖', file: '乙女解剖.mp3' },
-        { title: 'ゴーストルール', file: 'ゴーストルール.mp3' }
+        { title: 'メデ', file: 'メデ.mp3', bpm: 140 },
+        { title: 'トンデモワンダーズ', file: 'トンデモワンダーズ.mp3', bpm: 150 },
+        { title: 'テトリス', file: 'テトリス.mp3', bpm: 120 },
+        { title: 'マーシャル・マキシマイザー', file: 'マーシャル・マキシマイザー.mp3', bpm: 160 },
+        { title: 'ブリキノダンス', file: 'ブリキノダンス.mp3', bpm: 160 },
+        { title: 'シャルル', file: 'シャルル.mp3', bpm: 145 },
+        { title: 'グッバイ宣言', file: 'グッバイ宣言.mp3', bpm: 160 },
+        { title: 'ドラマツルギー', file: 'ドラマツルギー.mp3', bpm: 150 },
+        { title: 'KING', file: 'KING.mp3', bpm: 166 },
+        { title: 'ビターチョコデコレーション', file: 'ビターチョコデコレーション.mp3', bpm: 180 },
+        { title: 'ロウワー', file: 'ロウワー.mp3', bpm: 160 },
+        { title: '夜に駆ける', file: '夜に駆ける.mp3', bpm: 130 },
+        { title: 'マリーゴールド', file: 'マリーゴールド.mp3', bpm: 130 },
+        { title: 'ドライフラワー', file: 'ドライフラワー.mp3', bpm: 125 },
+        { title: '香水', file: '香水.mp3', bpm: 140 },
+        { title: 'Pretender', file: 'Pretender.mp3', bpm: 140 }
     ];
 
-    const songBPM = {
-        'メデ': 140,
-        'トンデモワンダーズ': 150,
-        'テトリス': 120,
-        'マーシャル・マキシマイザー': 160,
-        'ブリキノダンス': 160,
-        'シャルル': 145,
-        'グッバイ宣言': 160,
-        'ドラマツルギー': 150,
-        'KING': 166,
-        'ビターチョコデコレーション': 180,
-        'ロウワー': 160,
-        '夜に駆ける': 130,
-        'マトリョシカ': 205,
-        '千本桜': 150,
-        'ヒバナ': 180,
-        '命に嫌われている': 170,
-        'エンヴィーベイビー': 130,
-        'ベノム': 180,
-        '乙女解剖': 130,
-        'ゴーストルール': 210
-    };
+    // --- 初期化 ---
+    function init() {
+        // 曲リスト表示
+        songList.innerHTML = '';
+        songs.forEach((song, i) => {
+            const btn = document.createElement('button');
+            btn.textContent = song.title;
+            btn.className = 'songItem';
+            btn.addEventListener('click', () => {
+                selectSong(i);
+            });
+            songList.appendChild(btn);
+        });
 
-    songs.forEach(song => {
-        const songButton = document.createElement('div');
-        songButton.className = 'songItem';
-        songButton.innerText = song.title;
-        songButton.onclick = () => {
-            selectedSong = song;
-            Array.from(songList.children).forEach(child => child.style.color = 'white');
-            songButton.style.color = 'yellow';
-        };
-        songList.appendChild(songButton);
-    });
+        selectSong(0);
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
 
-    startGameButton.onclick = () => {
-        const difficulty = difficultySelector.value;
-        noteSpeed = difficulties[difficulty].noteSpeed;
+        backButton.addEventListener('click', () => {
+            stopGame();
+            showScreen('titleScreen');
+        });
+        backButtonResult.addEventListener('click', () => {
+            showScreen('titleScreen');
+        });
+        retryButton.addEventListener('click', () => {
+            startGame();
+        });
 
-        LANE_COUNT = parseInt(laneSelector.value);
-        resizeCanvasAndLanes();
+        startGameButton.addEventListener('click', () => {
+            if (!selectedSong) return;
+            startGame();
+        });
 
-        let bpm = songBPM[selectedSong.title] || 120;
-        noteSpawnRate = (60000 / bpm) / 2;
+        difficultySelector.addEventListener('change', () => {
+            updateDifficulty();
+        });
 
-        titleScreen.style.display = 'none';
-        gameScreen.style.display = 'flex';
-        startGame();
-    };
+        showScreen('titleScreen');
+    }
 
-    retryButton.onclick = () => location.reload();
-    backButton.onclick = () => location.reload();
-    backButtonResult.onclick = () => location.reload();
+    // --- 画面切り替え ---
+    function showScreen(screenId) {
+        [titleScreen, gameScreen, resultScreen].forEach(s => s.style.display = 'none');
+        if (screenId === 'titleScreen') titleScreen.style.display = 'flex';
+        else if (screenId === 'gameScreen') gameScreen.style.display = 'flex';
+        else if (screenId === 'resultScreen') resultScreen.style.display = 'flex';
+    }
 
-    const BASE_LANE_WIDTH = 60;
-    let noteSize = 50;
+    // --- 曲選択 ---
+    function selectSong(index) {
+        selectedSong = songs[index];
+        Array.from(songList.children).forEach((btn, i) => {
+            btn.classList.toggle('selected', i === index);
+        });
+        startGameButton.disabled = false;
+    }
 
-    function resizeCanvasAndLanes() {
+    // --- 難易度設定 ---
+    function updateDifficulty() {
+        const diff = difficultySelector.value;
+        switch (diff) {
+            case 'easy':
+                noteSpeed = 3;
+                noteSpawnRate = 600;
+                break;
+            case 'normal':
+                noteSpeed = 5;
+                noteSpawnRate = 400;
+                break;
+            case 'hard':
+                noteSpeed = 8;
+                noteSpawnRate = 300;
+                break;
+            default:
+                noteSpeed = 5;
+                noteSpawnRate = 400;
+                break;
+        }
+    }
+
+    // --- キャンバスリサイズ ---
+    function resizeCanvas() {
         canvas.width = window.innerWidth;
         canvas.height = window.innerHeight;
 
-        const maxTotalWidth = canvas.width * 0.8;
-        let laneWidth = Math.min(BASE_LANE_WIDTH, maxTotalWidth / LANE_COUNT);
-
-        const totalWidth = laneWidth * LANE_COUNT;
-        const startX = (canvas.width - totalWidth) / 2 + laneWidth / 2;
-
+        const laneCount = Math.min(laneKeys.length, 8);
+        const laneWidth = canvas.width / laneCount;
         lanes = [];
-        for (let i = 0; i < LANE_COUNT; i++) {
-            lanes.push(startX + i * laneWidth);
-        }
-
-        noteSize = laneWidth * 0.8;
-    }
-
-    window.addEventListener('resize', resizeCanvasAndLanes);
-    resizeCanvasAndLanes();
-
-    function startGame() {
-        bgm.src = selectedSong.file;
-        bgm.play();
-        gameRunning = true;
-        score = 0;
-        combo = 0;
-        notes = [];
-
-        bgm.onended = endGame;
-
-        spawnInterval = setInterval(() => {
-            if (gameRunning) {
-                let laneIndex = Math.floor(Math.random() * lanes.length);
-                let lane = lanes[laneIndex];
-                notes.push({ x: lane - noteSize / 2, y: 0, laneIndex: laneIndex });
-            }
-        }, noteSpawnRate);
-
-        draw();
-    }
-
-    function draw() {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-        ctx.fillStyle = 'cyan';
-        ctx.fillRect(0, canvas.height - 100, canvas.width, 5);
-
-        ctx.strokeStyle = 'white';
-        lanes.forEach(lane => {
-            ctx.beginPath();
-            ctx.moveTo(lane, 0);
-            ctx.lineTo(lane, canvas.height);
-            ctx.stroke();
-        });
-
-        ctx.fillStyle = 'white';
-        notes.forEach(note => {
-            ctx.fillRect(note.x, note.y, noteSize, noteSize);
-            note.y += noteSpeed;
-        });
-
-        ctx.fillStyle = 'yellow';
-        ctx.font = `${noteSize * 0.5}px Arial`;
-        lanes.forEach((lane, index) => {
-            ctx.fillText(laneKeys[index], lane - noteSize / 4, canvas.height - 10);
-        });
-
-        judgeEffects.forEach((effect, index) => {
-            ctx.fillStyle = effect.color;
-            ctx.font = '30px Arial';
-            ctx.fillText(effect.text, effect.x, effect.y);
-            effect.timer--;
-            if (effect.timer <= 0) judgeEffects.splice(index, 1);
-        });
-
-        effects.forEach((effect, index) => {
-            ctx.strokeStyle = 'cyan';
-            ctx.beginPath();
-            ctx.arc(effect.x + noteSize / 2, effect.y + noteSize / 2, 30 - effect.timer, 0, 2 * Math.PI);
-            ctx.stroke();
-            effect.timer--;
-            if (effect.timer <= 0) effects.splice(index, 1);
-        });
-
-        ctx.fillStyle = 'white';
-        ctx.font = '24px Arial';
-        ctx.fillText('Score: ' + score, 20, 40);
-        ctx.fillText('Combo: ' + combo, 20, 80);
-
-        notes = notes.filter(note => note.y <= canvas.height + noteSize);
-
-        if (gameRunning) {
-            requestAnimationFrame(draw);
+        for (let i = 0; i < laneCount; i++) {
+            lanes.push(laneWidth * i + laneWidth / 2);
         }
     }
 
-    function endGame() {
-        gameRunning = false;
-        clearInterval(spawnInterval);
-        gameScreen.style.display = 'none';
-        resultScreen.style.display = 'flex';
-
-        const finalScoreElement = document.getElementById('finalScore');
-        const finalRankElement = document.getElementById('finalRank');
-
-        finalScoreElement.innerText = 'スコア: ' + score;
-
-        const rank = getRank(score);
-        finalRankElement.innerText = 'ランク: ' + rank;
-
-        finalRankElement.className = '';
-        if (rank === 'SS') finalRankElement.classList.add('rank-SS');
-        else if (rank === 'S') finalRankElement.classList.add('rank-S');
-        else if (rank === 'A') finalRankElement.classList.add('rank-A');
-        else if (rank === 'B') finalRankElement.classList.add('rank-B');
-        else finalRankElement.classList.add('rank-C');
+    // --- ノーツ生成 ---
+    function spawnNote() {
+        if (!gameRunning) return;
+        const laneIndex = Math.floor(Math.random() * lanes.length);
+        notes.push({
+            x: lanes[laneIndex],
+            y: 0,
+            laneIndex,
+            hit: false,
+            judgeResult: null,
+        });
     }
 
-    function getRank(score) {
-        if (score >= 30000) return 'SS';
-        else if (score >= 20000) return 'S';
-        else if (score >= 15000) return 'A';
-        else if (score >= 10000) return 'B';
-        else return 'C';
-    }
-
-    function getJudge(noteY) {
-        let hitLine = canvas.height - 100;
-        let diff = Math.abs(noteY - hitLine);
-
-        if (diff <= 40) return { text: 'Perfect', color: 'gold', sound: perfectSound };
-        else if (diff <= 80) return { text: 'Great', color: 'blue', sound: greatSound };
-        else if (diff <= 120) return { text: 'Good', color: 'green', sound: goodSound };
-        else return { text: 'Miss', color: 'red', sound: missSound };
-    }
-
-    function handleHit(note, index) {
-        let judge = getJudge(note.y);
-        notes.splice(index, 1);
-
-        if (judge.text !== 'Miss') {
-            score += 100;
-            combo++;
-            tapSound.currentTime = 0;
-            tapSound.play();
-        } else {
-            combo = 0;
-        }
-
-        judge.sound.currentTime = 0;
-        judge.sound.play();
-
-        judgeEffects.push({ text: judge.text, color: judge.color, x: note.x, y: note.y, timer: 30 });
-        effects.push({ x: note.x, y: note.y, timer: 15 });
-    }
-
-    canvas.addEventListener('click', function (event) {
+    // --- ノーツ判定 ---
+    function judgeNote(key) {
         if (!gameRunning) return;
 
-        const rect = canvas.getBoundingClientRect();
-        const clickX = event.clientX - rect.left;
-        const clickY = event.clientY - rect.top;
+        const laneIndex = laneKeys.indexOf(key);
+        if (laneIndex === -1) return;
+
+        // 判定範囲は判定ラインY +-40
+        const judgeLineY = canvas.height - 150;
+        let judged = false;
 
         for (let i = 0; i < notes.length; i++) {
-            let note = notes[i];
-            if (clickX >= note.x && clickX <= note.x + noteSize && clickY >= note.y && clickY <= note.y + noteSize) {
-                handleHit(note, i);
-                break;
-            }
-        }
-    });
+            const note = notes[i];
+            if (note.laneIndex === laneIndex && !note.hit) {
+                const dist = Math.abs(note.y - judgeLineY);
 
-    window.addEventListener('keydown', function (event) {
-        if (!gameRunning) return;
-
-        const keyIndex = laneKeys.indexOf(event.key.toUpperCase());
-        if (keyIndex !== -1 && keyIndex < LANE_COUNT) {
-            for (let i = 0; i < notes.length; i++) {
-                let note = notes[i];
-                if (note.laneIndex === keyIndex && note.y >= canvas.height - 150 && note.y <= canvas.height - 20) {
-                    handleHit(note, i);
+                if (dist <= 20) {
+                    // PERFECT
+                    handleHit(note, i, 'PERFECT');
+                    judged = true;
+                    break;
+                } else if (dist <= 40) {
+                    // GREAT
+                    handleHit(note, i, 'GREAT');
+                    judged = true;
+                    break;
+                } else if (dist <= 60) {
+                    // GOOD
+                    handleHit(note, i, 'GOOD');
+                    judged = true;
                     break;
                 }
             }
         }
-    });
 
-    canvas.addEventListener('touchstart', function (event) {
-        if (!gameRunning) return;
+        if (!judged) {
+            // MISS判定（押したけどノーツなかった）
+            missSound.play();
+            combo = 0;
+        }
+    }
 
-        const rect = canvas.getBoundingClientRect();
-        const touchX = event.touches[0].clientX - rect.left;
-        const touchY = event.touches[0].clientY - rect.top;
+    // --- ヒット処理 ---
+    function handleHit(note, index, judge) {
+        note.hit = true;
+        note.judgeResult = judge;
 
-        for (let i = 0; i < notes.length; i++) {
-            let note = notes[i];
-            if (touchX >= note.x && touchX <= note.x + noteSize && touchY >= note.y && touchY <= note.y + noteSize) {
-                handleHit(note, i);
+        notes.splice(index, 1);
+
+        // スコアとコンボ
+        switch (judge) {
+            case 'PERFECT':
+                score += 1000;
+                combo++;
+                perfectSound.play();
                 break;
+            case 'GREAT':
+                score += 700;
+                combo++;
+                greatSound.play();
+                break;
+            case 'GOOD':
+                score += 400;
+                combo++;
+                goodSound.play();
+                break;
+        }
+        judgeEffects.push({ x: note.x, y: canvas.height - 150, judge, frame: 0 });
+    }
+
+    // --- ノーツ更新 ---
+    function updateNotes() {
+        for (let i = notes.length - 1; i >= 0; i--) {
+            const note = notes[i];
+            note.y += noteSpeed;
+
+            // 判定ラインを超えてMISS扱いに
+            if (!note.hit && note.y > canvas.height - 110) {
+                notes.splice(i, 1);
+                missSound.play();
+                combo = 0;
             }
         }
-    });
+    }
+
+    // --- 判定エフェクト更新 ---
+    function updateJudgeEffects() {
+        for (let i = judgeEffects.length - 1; i >= 0; i--) {
+            const e = judgeEffects[i];
+            e.frame++;
+            if (e.frame > 30) {
+                judgeEffects.splice(i, 1);
+            }
+        }
+    }
+
+    // --- 描画 ---
+    function draw() {
+        // 背景
+        ctx.fillStyle = '#111';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        // レーン描画
+        const laneWidth = canvas.width / lanes.length;
+        for (let i = 0; i < lanes.length; i++) {
+            const x = i * laneWidth;
+            ctx.fillStyle = (i % 2 === 0) ? '#222' : '#333';
+            ctx.fillRect(x, 0, laneWidth, canvas.height);
+
+            // レーン境界線
+            ctx.strokeStyle = '#555';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(x, 0);
+            ctx.lineTo(x, canvas.height);
+            ctx.stroke();
+        }
+
+        // 判定ライン
+        const judgeLineY = canvas.height - 150;
+        ctx.strokeStyle = '#f90';
+        ctx.lineWidth = 5;
+        ctx.beginPath();
+        ctx.moveTo(0, judgeLineY);
+        ctx.lineTo(canvas.width, judgeLineY);
+        ctx.stroke();
+
+        // ノーツ描画
+        notes.forEach(note => {
+            ctx.fillStyle = '#ff6';
+            ctx.beginPath();
+            ctx.arc(note.x, note.y, 20, 0, Math.PI * 2);
+            ctx.fill();
+            // 縁取り
+            ctx.strokeStyle = '#ffa';
+            ctx.lineWidth = 3;
+            ctx.stroke();
+        });
+
+        // 判定エフェクト描画
+        judgeEffects.forEach(e => {
+            ctx.font = 'bold 28px Arial';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            let color = 'white';
+            if (e.judge === 'PERFECT') color = 'gold';
+            else if (e.judge === 'GREAT') color = 'skyblue';
+            else if (e.judge === 'GOOD') color = 'lightgreen';
+
+            ctx.fillStyle = color;
+            ctx.globalAlpha = 1 - e.frame / 30;
+            ctx.fillText(e.judge, e.x, e.y - e.frame);
+            ctx.globalAlpha = 1;
+        });
+
+        // スコア表示
+        ctx.fillStyle = 'white';
+        ctx.font = '24px Arial';
+        ctx.textAlign = 'left';
+        ctx.fillText(`Score: ${score}`, 20, 40);
+        ctx.fillText(`Combo: ${combo}`, 20, 70);
+    }
+
+    // --- メインループ ---
+    function gameLoop() {
+        if (!gameRunning) return;
+        updateNotes();
+        updateJudgeEffects();
+        draw();
+        requestAnimationFrame(gameLoop);
+    }
+
+    // --- ゲーム開始 ---
+    function startGame() {
+        resetGame();
+        showScreen('gameScreen');
+        bgm.src = selectedSong.file;
+        bgm.currentTime = 0;
+        bgm.play();
+
+        gameRunning = true;
+        spawnInterval = setInterval(spawnNote, noteSpawnRate);
+
+        // キー入力監視
+        window.addEventListener('keydown', keydownHandler);
+
+        gameLoop();
+    }
+
+    // --- ゲーム終了 ---
+    function stopGame() {
+        gameRunning = false;
+        clearInterval(spawnInterval);
+        spawnInterval = null;
+        bgm.pause();
+        window.removeEventListener('keydown', keydownHandler);
+    }
+
+    // --- リセット ---
+    function resetGame() {
+        notes = [];
+        judgeEffects = [];
+        score = 0;
+        combo = 0;
+        updateDifficulty();
+    }
+
+    // --- キー押下処理 ---
+    function keydownHandler(e) {
+        if (!gameRunning) return;
+        const key = e.key.toUpperCase();
+        if (laneKeys.includes(key)) {
+            judgeNote(key);
+            tapSound.play();
+        }
+    }
+
+    // --- リザルト画面表示 ---
+    function showResult() {
+        stopGame();
+        showScreen('resultScreen');
+
+        document.getElementById('finalScore').textContent = `Score: ${score}`;
+
+        let rank = 'C';
+        if (score >= 15000) rank = 'SS';
+        else if (score >= 12000) rank = 'S';
+        else if (score >= 9000) rank = 'A';
+        else if (score >= 6000) rank = 'B';
+
+        const rankEl = document.getElementById('finalRank');
+        rankEl.textContent = rank;
+        rankEl.className = 'result-rank rank-' + rank;
+    }
+
+    // --- ゲーム時間制限（例: 60秒で終了） ---
+    function gameTimer() {
+        setTimeout(() => {
+            showResult();
+        }, 60000); // 60秒
+    }
+
+    // 初期化
+    init();
 });

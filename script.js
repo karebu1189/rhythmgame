@@ -371,10 +371,15 @@ document.addEventListener('DOMContentLoaded', () => {
         spawnNote();
         spawnInterval = setInterval(spawnNote, noteSpawnRate);
 
-        gameTimerTimeout = setTimeout(() => {
-            stopGame();
-            showResult();
-        }, 60 * 1000); // 1分間プレイ（曲の長さで調整可）
+        bgm.onloadedmetadata = () => {
+    const durationMs = bgm.duration * 1000;
+    clearTimeout(gameTimerTimeout);
+    gameTimerTimeout = setTimeout(() => {
+        stopGame();
+        showResult();
+    }, durationMs);
+};
+
 
         gameLoop();
         showScreen('gameScreen');

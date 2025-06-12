@@ -39,8 +39,10 @@ document.addEventListener('DOMContentLoaded', () => {
     let combo = 0;
     let maxCombo = 0;
     let gameRunning = false;
-    let noteSpeed = 5;
     let gameTimerTimeout = null;
+    let noteSpeed = 5;
+    let spawnIntervals = [];
+    let noteIntervalMs = 0;
 
     // --- 曲リスト ---
     const songs = [
@@ -62,9 +64,6 @@ document.addEventListener('DOMContentLoaded', () => {
         { title: 'Pretender', file: 'Pretender.mp3', bpm: 140 }
     ];
 
-    // --- BPM連動譜面自動生成用変数 ---
-    let spawnIntervalMs = 0;
-
     // --- 初期化 ---
     function init() {
         songList.innerHTML = '';
@@ -72,7 +71,9 @@ document.addEventListener('DOMContentLoaded', () => {
             const btn = document.createElement('button');
             btn.textContent = song.title;
             btn.className = 'songItem';
-            btn.addEventListener('click', () => selectSong(i));
+            btn.addEventListener('click', () => {
+                selectSong(i);
+            });
             songList.appendChild(btn);
         });
 
@@ -84,15 +85,21 @@ document.addEventListener('DOMContentLoaded', () => {
             stopGame();
             showScreen('titleScreen');
         });
-        backButtonResult.addEventListener('click', () => showScreen('titleScreen'));
-        retryButton.addEventListener('click', () => startGame());
+        backButtonResult.addEventListener('click', () => {
+            showScreen('titleScreen');
+        });
+        retryButton.addEventListener('click', () => {
+            startGame();
+        });
 
         startGameButton.addEventListener('click', () => {
             if (!selectedSong) return;
             startGame();
         });
 
-        difficultySelector.addEventListener('change', updateDifficulty);
+        difficultySelector.addEventListener('change', () => {
+            updateDifficulty();
+        });
 
         canvas.addEventListener('touchstart', (e) => {
             e.preventDefault();
@@ -104,13 +111,13 @@ document.addEventListener('DOMContentLoaded', () => {
         showScreen('titleScreen');
     }
 
-    // --- 画面切り替え ---
     function showScreen(screenId) {
         [titleScreen, gameScreen, resultScreen].forEach(s => s.style.display = 'none');
-        document.getElementById(screenId).style.display = 'flex';
+        if (screenId === 'titleScreen') titleScreen.style.display = 'flex';
+        else if (screenId === 'gameScreen') gameScreen.style.display = 'flex';
+        else if (screenId === 'resultScreen') resultScreen.style.display = 'flex';
     }
 
-    // --- 曲選択 ---
     function selectSong(index) {
         selectedSong = songs[index];
         Array.from(songList.children).forEach((btn, i) => {
@@ -119,7 +126,6 @@ document.addEventListener('DOMContentLoaded', () => {
         startGameButton.disabled = false;
     }
 
-    // --- 難易度設定 ---
     function updateDifficulty() {
         const diff = difficultySelector.value;
         switch (diff) {
@@ -138,7 +144,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // --- キャンバスリサイズ ---
     function resizeCanvas() {
         canvas.width = window.innerWidth;
         canvas.height = window.innerHeight;
@@ -153,54 +158,60 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // --- 本格譜面パターン自動生成（BPM連動） ---
-    function generatePattern() {
+    function bpmToInterval(bpm) {
+        return 60000 / bpm;
+    }
+
+    function spawnNote() {
         if (!gameRunning) return;
-
-        const rand = Math.random();
-        if (rand < 0.4) {
-            spawnNoteRandom();
-        } else if (rand < 0.7) {
-            spawnNoteSimultaneous();
-        } else {
-            spawnNoteSequence();
-        }
-
-        setTimeout(generatePattern, spawnIntervalMs);
-    }
-
-    function spawnNoteRandom() {
         const laneIndex = Math.floor(Math.random() * lanes.length);
-        notes.push({ x: lanes[laneIndex], y: 0, laneIndex, hit: false, judgeResult: null });
+        notes.push({
+            x: lanes[laneIndex],
+            y: 0,
+            laneIndex,
+            hit: false,
+            judgeResult: null,
+        });
     }
 
-    function spawnNoteSimultaneous() {
-        const laneCount = Math.floor(Math.random() * 3) + 2;
-        let usedLanes = [];
-        while (usedLanes.length < laneCount) {
-            let idx = Math.floor(Math.random() * lanes.length);
-            if (!usedLanes.includes(idx)) {
-                usedLanes.push(idx);
-                notes.push({ x: lanes[idx], y: 0, laneIndex: idx, hit: false, judgeResult: null });
+    function scheduleNotes() {
+        const bpm = selectedSong.bpm;
+        const interval = bpmToInterval(bpm);
+        const pattern = [1, 0, 1, 0, 1, 1, 0, 1];
+
+        let elapsed = 0;
+        let index = 0;
+
+        function spawnPatternNote() {
+            if (!gameRunning) return;
+
+            if (pattern[index % pattern.length] === 1) {
+                spawnNote();
+            }
+
+            index++;
+            elapsed += interval;
+
+            if (elapsed < bgm.duration * 1000) {
+                const timer = setTimeout(spawnPatternNote, interval);
+                spawnIntervals.push(timer);
             }
         }
+
+        spawnPatternNote();
     }
 
-    function spawnNoteSequence() {
-        const startLane = Math.floor(Math.random() * (lanes.length - 3));
-        for (let i = 0; i < 4; i++) {
-            notes.push({ x: lanes[startLane + i], y: -i * 100, laneIndex: startLane + i, hit: false, judgeResult: null });
-        }
-    }
-
-    // --- ノーツ判定 ---
     function judgeNote(key) {
         if (!gameRunning) return;
 
         const laneIndex = laneKeys.indexOf(key);
         if (laneIndex === -1) return;
 
-        tapEffects.push({ x: lanes[laneIndex], y: canvas.height - 150, frame: 0 });
+        tapEffects.push({
+            x: lanes[laneIndex],
+            y: canvas.height - 150,
+            frame: 0,
+        });
 
         const judgeLineY = canvas.height - 150;
         let judged = false;
@@ -235,15 +246,25 @@ document.addEventListener('DOMContentLoaded', () => {
     function handleHit(note, index, judge) {
         note.hit = true;
         note.judgeResult = judge;
-
         notes.splice(index, 1);
 
         switch (judge) {
-            case 'PERFECT': score += 1000; combo++; perfectSound.play(); break;
-            case 'GREAT': score += 700; combo++; greatSound.play(); break;
-            case 'GOOD': score += 400; combo++; goodSound.play(); break;
+            case 'PERFECT':
+                score += 1000;
+                combo++;
+                perfectSound.play();
+                break;
+            case 'GREAT':
+                score += 700;
+                combo++;
+                greatSound.play();
+                break;
+            case 'GOOD':
+                score += 400;
+                combo++;
+                goodSound.play();
+                break;
         }
-
         if (combo > maxCombo) maxCombo = combo;
 
         judgeEffects.push({ x: note.x, y: canvas.height - 150, judge, frame: 0 });
@@ -284,6 +305,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const x = startX + laneWidth * i;
             ctx.fillStyle = '#222';
             ctx.fillRect(x, 0, laneWidth - 2, canvas.height);
+
             ctx.fillStyle = '#555';
             ctx.font = '24px Arial';
             ctx.textAlign = 'center';
@@ -319,6 +341,7 @@ document.addEventListener('DOMContentLoaded', () => {
             ctx.beginPath();
             ctx.arc(e.x, e.y, 20 + e.frame * 3, 0, Math.PI * 2);
             ctx.stroke();
+
             e.frame++;
             if (e.frame > 15) tapEffects.splice(idx, 1);
         });
@@ -345,15 +368,15 @@ document.addEventListener('DOMContentLoaded', () => {
         notes = [];
         judgeEffects = [];
         tapEffects = [];
+        spawnIntervals = [];
         updateDifficulty();
-
-        spawnIntervalMs = 60000 / selectedSong.bpm;
 
         bgm.src = selectedSong.file;
         bgm.currentTime = 0;
         bgm.play();
 
         gameRunning = true;
+        scheduleNotes();
 
         bgm.onloadedmetadata = () => {
             const durationMs = bgm.duration * 1000;
@@ -364,13 +387,13 @@ document.addEventListener('DOMContentLoaded', () => {
             }, durationMs);
         };
 
-        generatePattern();
         gameLoop();
         showScreen('gameScreen');
     }
 
     function stopGame() {
         gameRunning = false;
+        spawnIntervals.forEach(timer => clearTimeout(timer));
         clearTimeout(gameTimerTimeout);
         bgm.pause();
         bgm.currentTime = 0;
@@ -393,12 +416,17 @@ document.addEventListener('DOMContentLoaded', () => {
         const laneIndex = Math.floor((x - laneStartX) / laneWidth);
         if (laneIndex < 0 || laneIndex >= laneKeys.length) return;
 
-        judgeNote(laneKeys[laneIndex]);
+        const laneKey = laneKeys[laneIndex];
+        judgeNote(laneKey);
 
         tapSound.currentTime = 0;
         tapSound.play();
 
-        tapEffects.push({ x: lanes[laneIndex], y: canvas.height - 150, frame: 0 });
+        tapEffects.push({
+            x: lanes[laneIndex],
+            y: canvas.height - 150,
+            frame: 0,
+        });
     }
 
     window.addEventListener('keydown', e => {

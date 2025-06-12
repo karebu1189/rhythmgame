@@ -46,7 +46,7 @@ document.addEventListener('DOMContentLoaded', () => {
     { title: 'メデ', file: 'メデ.mp3' },
     { title: 'トンデモワンダーズ', file: 'トンデモワンダーズ.mp3' },
     { title: 'テトリス', file: 'テトリス.mp3' },
-    { title: 'ロキ', file: 'ロキ.mp3' },
+    { title: ' マーシャル・マキシマイザー', file: ' マーシャル・マキシマイザー.mp3' },
     { title: 'ブリキノダンス', file: 'ブリキノダンス.mp3' },
     { title: 'シャルル', file: 'シャルル.mp3' },
     { title: 'グッバイ宣言', file: 'グッバイ宣言.mp3' },

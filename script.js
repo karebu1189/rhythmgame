@@ -22,6 +22,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const goodSound = document.getElementById('goodSound');
     const missSound = document.getElementById('missSound');
 
+    const finalScoreDisplay = document.getElementById('finalScore');
+    const maxComboDisplay = document.getElementById('maxCombo');
+
     // --- 定数 ---
     const laneKeys = ['D', 'F', 'G', 'H', 'J', 'K', 'L', ';'];
 
@@ -177,7 +180,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const laneIndex = laneKeys.indexOf(key);
         if (laneIndex === -1) return;
 
-        // タップエフェクト追加
         tapEffects.push({
             x: lanes[laneIndex],
             y: canvas.height - 150,
@@ -273,7 +275,6 @@ document.addEventListener('DOMContentLoaded', () => {
         ctx.fillStyle = '#111';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-        // レーン描画
         const laneAreaWidth = canvas.width * 0.5;
         const laneWidth = laneAreaWidth / laneKeys.length;
         const startX = (canvas.width - laneAreaWidth) / 2;
@@ -288,7 +289,6 @@ document.addEventListener('DOMContentLoaded', () => {
             ctx.strokeRect(x, 0, laneWidth, canvas.height);
         }
 
-        // 判定ライン描画
         const judgeLineY = canvas.height - 150;
         ctx.strokeStyle = '#ffff00';
         ctx.lineWidth = 4;
@@ -297,7 +297,6 @@ document.addEventListener('DOMContentLoaded', () => {
         ctx.lineTo(startX + laneAreaWidth, judgeLineY);
         ctx.stroke();
 
-        // ノーツ描画（横長四角形）
         notes.forEach(note => {
             if (note.hit) return;
             ctx.fillStyle = '#00ccff';
@@ -307,7 +306,6 @@ document.addEventListener('DOMContentLoaded', () => {
             ctx.strokeRect(note.x - 40, note.y - 20, 80, 40);
         });
 
-        // 判定エフェクト描画（文字と光彩）
         judgeEffects.forEach(e => {
             const alpha = 1 - e.frame / 30;
             ctx.globalAlpha = alpha;
@@ -318,7 +316,6 @@ document.addEventListener('DOMContentLoaded', () => {
             ctx.globalAlpha = 1;
         });
 
-        // タップエフェクト描画（光の波紋）
         tapEffects.forEach((e, i) => {
             const maxFrames = 20;
             const alpha = 1 - e.frame / maxFrames;
@@ -345,7 +342,6 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
 
-        // スコア＆コンボ描画
         ctx.fillStyle = '#fff';
         ctx.font = '24px Arial';
         ctx.textAlign = 'left';
@@ -353,7 +349,6 @@ document.addEventListener('DOMContentLoaded', () => {
         ctx.fillText(`Combo: ${combo}`, 20, 70);
     }
 
-    // --- ゲームループ ---
     function gameLoop() {
         if (!gameRunning) return;
         updateNotes();
@@ -362,7 +357,6 @@ document.addEventListener('DOMContentLoaded', () => {
         requestAnimationFrame(gameLoop);
     }
 
-    // --- ゲーム開始 ---
     function startGame() {
         score = 0;
         combo = 0;
@@ -391,7 +385,6 @@ document.addEventListener('DOMContentLoaded', () => {
         gameLoop();
     }
 
-    // --- ゲーム停止 ---
     function stopGame() {
         gameRunning = false;
         clearInterval(spawnInterval);
@@ -400,14 +393,12 @@ document.addEventListener('DOMContentLoaded', () => {
         bgm.currentTime = 0;
     }
 
-    // --- リザルト画面表示 ---
     function showResult() {
         showScreen('resultScreen');
-        document.getElementById('finalScore').textContent = score;
-        document.getElementById('maxCombo').textContent = maxCombo;
+        finalScoreDisplay.textContent = score;
+        maxComboDisplay.textContent = maxCombo;
     }
 
-    // --- キー入力 ---
     window.addEventListener('keydown', e => {
         if (!gameRunning) return;
         if (laneKeys.includes(e.key.toUpperCase())) {
@@ -417,6 +408,5 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // --- 初期化 ---
     init();
 });

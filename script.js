@@ -73,11 +73,28 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // 曲リスト（fileは実際の音源ファイルパスに変えてね）
   const songs = [
-    { title: 'メデ', file: 'メデ.mp3', bpm: 140, chart: sampleChart },
-    { title: 'トンデモワンダーズ', file: 'トンデモワンダーズ.mp3', bpm: 150, chart: sampleChart },
-    { title: 'テトリス', file: 'テトリス.mp3', bpm: 120, chart: sampleChart },
-    // 他曲も同様にchartはセットしてください
-  ];
+  { title: 'メデ', file: 'メデ.mp3', bpm: 140, chart: sampleChart },
+  { title: 'トンデモワンダーズ', file: 'トンデモワンダーズ.mp3', bpm: 150, chart: sampleChart },
+  { title: 'テトリス', file: 'テトリス.mp3', bpm: 120, chart: sampleChart },
+  { title: 'マーシャル・マキシマイザー', file: 'マーシャル・マキシマイザー.mp3', bpm: 160, chart: sampleChart },
+  { title: 'ブリキノダンス', file: 'ブリキノダンス.mp3', bpm: 160, chart: sampleChart },
+  { title: 'シャルル', file: 'シャルル.mp3', bpm: 145, chart: sampleChart },
+  { title: 'グッバイ宣言', file: 'グッバイ宣言.mp3', bpm: 160, chart: sampleChart },
+  { title: 'ドラマツルギー', file: 'ドラマツルギー.mp3', bpm: 150, chart: sampleChart },
+  { title: 'KING', file: 'KING.mp3', bpm: 166, chart: sampleChart },
+  { title: 'ビターチョコデコレーション', file: 'ビターチョコデコレーション.mp3', bpm: 180, chart: sampleChart },
+  { title: 'ロウワー', file: 'ロウワー.mp3', bpm: 160, chart: sampleChart },
+  { title: '夜に駆ける', file: '夜に駆ける.mp3', bpm: 130, chart: sampleChart },
+  { title: 'マリーゴールド', file: 'マリーゴールド.mp3', bpm: 130, chart: sampleChart },
+  { title: 'ドライフラワー', file: 'ドライフラワー.mp3', bpm: 125, chart: sampleChart },
+  { title: '香水', file: '香水.mp3', bpm: 140, chart: sampleChart },
+  { title: 'Pretender', file: 'Pretender.mp3', bpm: 140, chart: sampleChart },
+  { title: '新曲１', file: 'new01.mp3', bpm: 150, chart: sampleChart },
+  { title: '新曲２', file: 'new02.mp3', bpm: 155, chart: sampleChart },
+  { title: '新曲３', file: 'new03.mp3', bpm: 160, chart: sampleChart },
+  { title: '新曲４', file: 'new04.mp3', bpm: 165, chart: sampleChart },
+];
+
 
   // --- 初期化 ---
   function init() {

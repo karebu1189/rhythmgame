@@ -1,3 +1,4 @@
+あなた:
 document.addEventListener('DOMContentLoaded', () => {
     // --- DOM要素 ---
     const titleScreen = document.getElementById('titleScreen');
@@ -288,7 +289,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         tapEffects.forEach((e, idx) => {
-            ctx.strokeStyle = `rgba(255,255,255,${1 - e.frame / 15})`;
+            ctx.strokeStyle = rgba(255,255,255,${1 - e.frame / 15});
             ctx.lineWidth = 4;
             ctx.beginPath();
             ctx.arc(e.x, e.y, 20 + e.frame * 3, 0, Math.PI * 2);
@@ -327,15 +328,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
         gameRunning = true;
 
-        bgm.onloadedmetadata = () => {
-            bgm.play();
-            startNoteSpawning();
-        };
+       bgm.onloadedmetadata = () => {
+    bgm.play();
+    startNoteSpawning();
+};
 
-        bgm.onended = () => {
-            stopGame();
-            showResult();
-        };
+bgm.onended = () => {
+    stopGame();
+    showResult();
+};
+
 
         gameLoop();
         showScreen('gameScreen');

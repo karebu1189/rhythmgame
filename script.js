@@ -24,7 +24,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- 定数 ---
     const laneKeys = ['D', 'F', 'G', 'H', 'J', 'K', 'L', ';'];
-    const BASE_LANE_WIDTH = 60;
 
     // --- ゲーム状態 ---
     let selectedSong = null;
@@ -148,11 +147,14 @@ document.addEventListener('DOMContentLoaded', () => {
         canvas.width = window.innerWidth;
         canvas.height = window.innerHeight;
 
-        const laneCount = Math.min(laneKeys.length, 8);
-        const laneWidth = canvas.width / laneCount;
+        // レーン幅は画面幅の50%に制限して細く
+        const laneAreaWidth = canvas.width * 0.5;
+        const laneWidth = laneAreaWidth / laneKeys.length;
+
         lanes = [];
-        for (let i = 0; i < laneCount; i++) {
-            lanes.push(laneWidth * i + laneWidth / 2);
+        for (let i = 0; i < laneKeys.length; i++) {
+            const startX = (canvas.width - laneAreaWidth) / 2;
+            lanes.push(startX + laneWidth * i + laneWidth / 2);
         }
     }
 
@@ -176,7 +178,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const laneIndex = laneKeys.indexOf(key);
         if (laneIndex === -1) return;
 
-        // 判定範囲は判定ラインY +-40
         const judgeLineY = canvas.height - 150;
         let judged = false;
 
@@ -186,17 +187,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 const dist = Math.abs(note.y - judgeLineY);
 
                 if (dist <= 20) {
-                    // PERFECT
                     handleHit(note, i, 'PERFECT');
                     judged = true;
                     break;
                 } else if (dist <= 40) {
-                    // GREAT
                     handleHit(note, i, 'GREAT');
                     judged = true;
                     break;
                 } else if (dist <= 60) {
-                    // GOOD
                     handleHit(note, i, 'GOOD');
                     judged = true;
                     break;
@@ -205,7 +203,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         if (!judged) {
-            // MISS判定（押したけどノーツなかった）
             missSound.play();
             combo = 0;
         }
@@ -218,7 +215,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
         notes.splice(index, 1);
 
-        // スコアとコンボ
         switch (judge) {
             case 'PERFECT':
                 score += 1000;
@@ -247,7 +243,6 @@ document.addEventListener('DOMContentLoaded', () => {
             const note = notes[i];
             note.y += noteSpeed;
 
-            // 判定ラインを超えてMISS扱いに
             if (!note.hit && note.y > canvas.height - 110) {
                 notes.splice(i, 1);
                 missSound.play();
@@ -269,18 +264,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- 描画 ---
     function draw() {
-        // 背景
         ctx.fillStyle = '#111';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
         // レーン描画
-        const laneWidth = canvas.width / lanes.length;
-        for (let i = 0; i < lanes.length; i++) {
-            const x = i * laneWidth;
+        const laneAreaWidth = canvas.width * 0.5;
+        const laneWidth = laneAreaWidth / laneKeys.length;
+        const startX = (canvas.width - laneAreaWidth) / 2;
+
+        for (let i = 0; i < laneKeys.length; i++) {
+            const x = startX + laneWidth * i;
             ctx.fillStyle = (i % 2 === 0) ? '#222' : '#333';
             ctx.fillRect(x, 0, laneWidth, canvas.height);
 
-            // レーン境界線
             ctx.strokeStyle = '#555';
             ctx.lineWidth = 2;
             ctx.beginPath();
@@ -301,8 +297,8 @@ document.addEventListener('DOMContentLoaded', () => {
         // ノーツ描画（横長の四角形）
         notes.forEach(note => {
             ctx.fillStyle = '#ff6';
-            const width = 60;  // 横長の幅
-            const height = 30; // 高さは短め
+            const width = 80;  // 横長
+            const height = 40;
             ctx.fillRect(note.x - width / 2, note.y - height / 2, width, height);
 
             ctx.strokeStyle = '#ffa';
@@ -336,80 +332,67 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- ゲームループ ---
     function gameLoop() {
         if (!gameRunning) return;
-
         updateNotes();
         updateJudgeEffects();
-
         draw();
-
         requestAnimationFrame(gameLoop);
     }
 
     // --- ゲーム開始 ---
     function startGame() {
-        resetGame();
-        showScreen('gameScreen');
+        score = 0;
+        combo = 0;
+        maxCombo = 0;
+        notes = [];
+        judgeEffects = [];
+        gameRunning = true;
 
-        // BGM再生はcanplaythrough待ちで安定
         bgm.src = selectedSong.file;
         bgm.currentTime = 0;
-        bgm.oncanplaythrough = () => {
-            bgm.play();
-        };
+        bgm.play();
 
-        gameRunning = true;
+        updateDifficulty();
+
+        spawnNote();
         spawnInterval = setInterval(spawnNote, noteSpawnRate);
 
-        window.addEventListener('keydown', keydownHandler);
+        // ゲーム時間は曲の長さ（例: 30秒）
+        if (gameTimerTimeout) clearTimeout(gameTimerTimeout);
+        gameTimerTimeout = setTimeout(() => {
+            stopGame();
+            showResult();
+        }, 30000);
 
+        showScreen('gameScreen');
         gameLoop();
-
-        gameTimer();
     }
 
-    // --- ゲーム終了 ---
+    // --- ゲーム停止 ---
     function stopGame() {
         gameRunning = false;
         clearInterval(spawnInterval);
-        clearTimeout(gameTimerTimeout);
-        window.removeEventListener('keydown', keydownHandler);
+        spawnInterval = null;
         bgm.pause();
         bgm.currentTime = 0;
     }
 
-    // --- ゲームリセット ---
-    function resetGame() {
-        notes = [];
-        judgeEffects = [];
-        score = 0;
-        combo = 0;
-        maxCombo = 0;
-        updateDifficulty();
+    // --- リザルト画面表示 ---
+    function showResult() {
+        showScreen('resultScreen');
+        document.getElementById('finalScore').textContent = score;
+        document.getElementById('maxCombo').textContent = maxCombo;
     }
 
     // --- キー入力 ---
-    function keydownHandler(e) {
-        const key = e.key.toUpperCase();
-        judgeNote(key);
-        tapSound.play();
-    }
+    window.addEventListener('keydown', e => {
+        if (!gameRunning) return;
+        if (laneKeys.includes(e.key.toUpperCase())) {
+            judgeNote(e.key.toUpperCase());
+            tapSound.currentTime = 0;
+            tapSound.play();
+        }
+    });
 
-    // --- ゲームタイマー（曲の長さで終了） ---
-    function gameTimer() {
-        // とりあえず曲長めの60秒で終了設定（mp3の実際の長さに差し替え推奨）
-        gameTimerTimeout = setTimeout(() => {
-            stopGame();
-            showResult();
-        }, 60000);
-    }
-
-    // --- リザルト表示 ---
-    function showResult() {
-        showScreen('resultScreen');
-        document.getElementById('resultScore').textContent = score;
-        document.getElementById('resultCombo').textContent = maxCombo;
-    }
-
-    // --- 初期化呼び出し ---
+    // --- 初期化実行 ---
     init();
 });

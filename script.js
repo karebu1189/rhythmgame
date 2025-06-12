@@ -1,3 +1,18 @@
+// 完全統合版プロセカ風音ゲーコード
+
+// HTML 側で必要な要素（例）:
+// <div id="titleScreen">...</div>
+// <div id="gameScreen">...</div>
+// <div id="resultScreen">...</div>
+// <select id="difficultySelector">...</select>
+// <select id="laneSelector">...</select>
+// <div id="songList"></div>
+// <button id="startGameButton"></button>
+// <audio id="bgm"></audio>
+// (他の必要な要素は既存の構造を参照)
+
+// JavaScript
+
 document.addEventListener('DOMContentLoaded', () => {
     const titleScreen = document.getElementById('titleScreen');
     const gameScreen = document.getElementById('gameScreen');
@@ -5,6 +20,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const songList = document.getElementById('songList');
     const difficultySelector = document.getElementById('difficultySelector');
+    const laneSelector = document.getElementById('laneSelector');
     const startGameButton = document.getElementById('startGameButton');
 
     const canvas = document.getElementById('gameCanvas');
@@ -34,36 +50,60 @@ document.addEventListener('DOMContentLoaded', () => {
     let spawnInterval;
 
     const difficulties = {
-        easy: { noteSpeed: 3, spawnRate: 500 },
-        normal: { noteSpeed: 5, spawnRate: 400 },
-        hard: { noteSpeed: 7, spawnRate: 300 }
+        easy: { noteSpeed: 3 },
+        normal: { noteSpeed: 5 },
+        hard: { noteSpeed: 7 }
     };
 
     let noteSpeed = difficulties.normal.noteSpeed;
-    let noteSpawnRate = difficulties.normal.spawnRate;
+    let noteSpawnRate = 400;
+    let LANE_COUNT = 8;
 
     const songs = [
-    { title: 'メデ', file: 'メデ.mp3' },
-    { title: 'トンデモワンダーズ', file: 'トンデモワンダーズ.mp3' },
-    { title: 'テトリス', file: 'テトリス.mp3' },
-    { title: ' マーシャル・マキシマイザー', file: ' マーシャル・マキシマイザー.mp3' },
-    { title: 'ブリキノダンス', file: 'ブリキノダンス.mp3' },
-    { title: 'シャルル', file: 'シャルル.mp3' },
-    { title: 'グッバイ宣言', file: 'グッバイ宣言.mp3' },
-    { title: 'ドラマツルギー', file: 'ドラマツルギー.mp3' },
-    { title: 'KING', file: 'KING.mp3' },
-    { title: 'ビターチョコデコレーション', file: 'ビターチョコデコレーション.mp3' },
-    { title: 'ロウワー', file: 'ロウワー.mp3' },
-    { title: '夜に駆ける', file: '夜に駆ける.mp3' },
-    { title: 'マトリョシカ', file: 'マトリョシカ.mp3' },
-    { title: '千本桜', file: '千本桜.mp3' },
-    { title: 'ヒバナ', file: 'ヒバナ.mp3' },
-    { title: '命に嫌われている', file: '命に嫌われている.mp3' },
-    { title: 'エンヴィーベイビー', file: 'エンヴィーベイビー.mp3' },
-    { title: 'ベノム', file: 'ベノム.mp3' },
-    { title: '乙女解剖', file: '乙女解剖.mp3' },
-    { title: 'ゴーストルール', file: 'ゴーストルール.mp3' }
-];
+        { title: 'メデ', file: 'メデ.mp3' },
+        { title: 'トンデモワンダーズ', file: 'トンデモワンダーズ.mp3' },
+        { title: 'テトリス', file: 'テトリス.mp3' },
+        { title: 'マーシャル・マキシマイザー', file: 'マーシャル・マキシマイザー.mp3' },
+        { title: 'ブリキノダンス', file: 'ブリキノダンス.mp3' },
+        { title: 'シャルル', file: 'シャルル.mp3' },
+        { title: 'グッバイ宣言', file: 'グッバイ宣言.mp3' },
+        { title: 'ドラマツルギー', file: 'ドラマツルギー.mp3' },
+        { title: 'KING', file: 'KING.mp3' },
+        { title: 'ビターチョコデコレーション', file: 'ビターチョコデコレーション.mp3' },
+        { title: 'ロウワー', file: 'ロウワー.mp3' },
+        { title: '夜に駆ける', file: '夜に駆ける.mp3' },
+        { title: 'マトリョシカ', file: 'マトリョシカ.mp3' },
+        { title: '千本桜', file: '千本桜.mp3' },
+        { title: 'ヒバナ', file: 'ヒバナ.mp3' },
+        { title: '命に嫌われている', file: '命に嫌われている.mp3' },
+        { title: 'エンヴィーベイビー', file: 'エンヴィーベイビー.mp3' },
+        { title: 'ベノム', file: 'ベノム.mp3' },
+        { title: '乙女解剖', file: '乙女解剖.mp3' },
+        { title: 'ゴーストルール', file: 'ゴーストルール.mp3' }
+    ];
+
+    const songBPM = {
+        'メデ': 140,
+        'トンデモワンダーズ': 150,
+        'テトリス': 120,
+        'マーシャル・マキシマイザー': 160,
+        'ブリキノダンス': 160,
+        'シャルル': 145,
+        'グッバイ宣言': 160,
+        'ドラマツルギー': 150,
+        'KING': 166,
+        'ビターチョコデコレーション': 180,
+        'ロウワー': 160,
+        '夜に駆ける': 130,
+        'マトリョシカ': 205,
+        '千本桜': 150,
+        'ヒバナ': 180,
+        '命に嫌われている': 170,
+        'エンヴィーベイビー': 130,
+        'ベノム': 180,
+        '乙女解剖': 130,
+        'ゴーストルール': 210
+    };
 
     songs.forEach(song => {
         const songButton = document.createElement('div');
@@ -80,7 +120,12 @@ document.addEventListener('DOMContentLoaded', () => {
     startGameButton.onclick = () => {
         const difficulty = difficultySelector.value;
         noteSpeed = difficulties[difficulty].noteSpeed;
-        noteSpawnRate = difficulties[difficulty].spawnRate;
+
+        LANE_COUNT = parseInt(laneSelector.value);
+        resizeCanvasAndLanes();
+
+        let bpm = songBPM[selectedSong.title] || 120;
+        noteSpawnRate = (60000 / bpm) / 2;
 
         titleScreen.style.display = 'none';
         gameScreen.style.display = 'flex';
@@ -91,19 +136,13 @@ document.addEventListener('DOMContentLoaded', () => {
     backButton.onclick = () => location.reload();
     backButtonResult.onclick = () => location.reload();
 
-    // 基準サイズ
     const BASE_LANE_WIDTH = 60;
-    const BASE_NOTE_SIZE = 50;
-    const LANE_COUNT = 8;
-
-    // 可変ノーツサイズ
-    let noteSize = BASE_NOTE_SIZE;
+    let noteSize = 50;
 
     function resizeCanvasAndLanes() {
         canvas.width = window.innerWidth;
         canvas.height = window.innerHeight;
 
-        // レーン幅は画面幅の80%以内に収める
         const maxTotalWidth = canvas.width * 0.8;
         let laneWidth = Math.min(BASE_LANE_WIDTH, maxTotalWidth / LANE_COUNT);
 
@@ -118,14 +157,10 @@ document.addEventListener('DOMContentLoaded', () => {
         noteSize = laneWidth * 0.8;
     }
 
-    window.addEventListener('resize', () => {
-        resizeCanvasAndLanes();
-    });
-
+    window.addEventListener('resize', resizeCanvasAndLanes);
     resizeCanvasAndLanes();
 
     function startGame() {
-        initializeLanes();
         bgm.src = selectedSong.file;
         bgm.play();
         gameRunning = true;
@@ -133,9 +168,7 @@ document.addEventListener('DOMContentLoaded', () => {
         combo = 0;
         notes = [];
 
-        bgm.onended = () => {
-            endGame();
-        };
+        bgm.onended = endGame;
 
         spawnInterval = setInterval(() => {
             if (gameRunning) {
@@ -148,19 +181,12 @@ document.addEventListener('DOMContentLoaded', () => {
         draw();
     }
 
-    // initializeLanesはレーン位置初期化だが、resizeで代用できるので中身は空でもOK
-    function initializeLanes() {
-        // 今はresizeCanvasAndLanesで処理済み
-    }
-
     function draw() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-        // 判定ライン
         ctx.fillStyle = 'cyan';
         ctx.fillRect(0, canvas.height - 100, canvas.width, 5);
 
-        // レーン線
         ctx.strokeStyle = 'white';
         lanes.forEach(lane => {
             ctx.beginPath();
@@ -169,21 +195,18 @@ document.addEventListener('DOMContentLoaded', () => {
             ctx.stroke();
         });
 
-        // ノーツ
         ctx.fillStyle = 'white';
         notes.forEach(note => {
             ctx.fillRect(note.x, note.y, noteSize, noteSize);
             note.y += noteSpeed;
         });
 
-        // キー表示
         ctx.fillStyle = 'yellow';
         ctx.font = `${noteSize * 0.5}px Arial`;
         lanes.forEach((lane, index) => {
             ctx.fillText(laneKeys[index], lane - noteSize / 4, canvas.height - 10);
         });
 
-        // 判定エフェクト表示
         judgeEffects.forEach((effect, index) => {
             ctx.fillStyle = effect.color;
             ctx.font = '30px Arial';
@@ -192,7 +215,6 @@ document.addEventListener('DOMContentLoaded', () => {
             if (effect.timer <= 0) judgeEffects.splice(index, 1);
         });
 
-        // 円形エフェクト
         effects.forEach((effect, index) => {
             ctx.strokeStyle = 'cyan';
             ctx.beginPath();
@@ -202,7 +224,6 @@ document.addEventListener('DOMContentLoaded', () => {
             if (effect.timer <= 0) effects.splice(index, 1);
         });
 
-        // スコア・コンボ表示
         ctx.fillStyle = 'white';
         ctx.font = '24px Arial';
         ctx.fillText('Score: ' + score, 20, 40);
@@ -221,8 +242,20 @@ document.addEventListener('DOMContentLoaded', () => {
         gameScreen.style.display = 'none';
         resultScreen.style.display = 'flex';
 
-        document.getElementById('finalScore').innerText = 'スコア: ' + score;
-        document.getElementById('finalRank').innerText = 'ランク: ' + getRank(score);
+        const finalScoreElement = document.getElementById('finalScore');
+        const finalRankElement = document.getElementById('finalRank');
+
+        finalScoreElement.innerText = 'スコア: ' + score;
+
+        const rank = getRank(score);
+        finalRankElement.innerText = 'ランク: ' + rank;
+
+        finalRankElement.className = '';
+        if (rank === 'SS') finalRankElement.classList.add('rank-SS');
+        else if (rank === 'S') finalRankElement.classList.add('rank-S');
+        else if (rank === 'A') finalRankElement.classList.add('rank-A');
+        else if (rank === 'B') finalRankElement.classList.add('rank-B');
+        else finalRankElement.classList.add('rank-C');
     }
 
     function getRank(score) {
@@ -283,7 +316,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!gameRunning) return;
 
         const keyIndex = laneKeys.indexOf(event.key.toUpperCase());
-        if (keyIndex !== -1) {
+        if (keyIndex !== -1 && keyIndex < LANE_COUNT) {
             for (let i = 0; i < notes.length; i++) {
                 let note = notes[i];
                 if (note.laneIndex === keyIndex && note.y >= canvas.height - 150 && note.y <= canvas.height - 20) {

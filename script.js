@@ -49,7 +49,7 @@ document.addEventListener('DOMContentLoaded', () => {
         { title: 'テトリス', file: 'テトリス.mp3', bpm: 120 },
         { title: 'マーシャル・マキシマイザー', file: 'マーシャル・マキシマイザー.mp3', bpm: 160 },
         { title: 'スマイル_シンフォニー', file: 'スマイル_シンフォニー.mp3', bpm: 160 },
-        { title: 'シャルル', file: 'シャルル.mp3', bpm: 145 },
+        { title: 'ラグトレイン', file: 'ラグトレイン.mp3', bpm: 145 },
         { title: 'グッバイ宣言', file: 'グッバイ宣言.mp3', bpm: 160 },
         { title: 'ドラマツルギー', file: 'ドラマツルギー.mp3', bpm: 150 },
         { title: 'KING', file: 'KING.mp3', bpm: 166 },

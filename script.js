@@ -102,6 +102,14 @@ document.addEventListener('DOMContentLoaded', () => {
             updateDifficulty();
         });
 
+        // スマホ対応のタップ判定を追加
+        canvas.addEventListener('touchstart', (e) => {
+            e.preventDefault(); // スクロール防止
+            for (const touch of e.touches) {
+                handleTouch(touch.clientX, touch.clientY);
+            }
+        }, { passive: false });
+
         showScreen('titleScreen');
     }
 
@@ -282,73 +290,61 @@ document.addEventListener('DOMContentLoaded', () => {
         for (let i = 0; i < laneKeys.length; i++) {
             const x = startX + laneWidth * i;
             ctx.fillStyle = '#222';
-            ctx.fillRect(x, 0, laneWidth, canvas.height);
+            ctx.fillRect(x, 0, laneWidth - 2, canvas.height);
 
-            ctx.strokeStyle = '#444';
-            ctx.lineWidth = 1;
-            ctx.strokeRect(x, 0, laneWidth, canvas.height);
+            ctx.fillStyle = '#555';
+            ctx.font = '24px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText(laneKeys[i], x + laneWidth / 2, canvas.height - 100);
         }
 
-        const judgeLineY = canvas.height - 150;
-        ctx.strokeStyle = '#ffff00';
+        // 判定ライン
+        ctx.strokeStyle = 'yellow';
         ctx.lineWidth = 4;
         ctx.beginPath();
-        ctx.moveTo(startX, judgeLineY);
-        ctx.lineTo(startX + laneAreaWidth, judgeLineY);
+        ctx.moveTo(startX, canvas.height - 150);
+        ctx.lineTo(startX + laneAreaWidth, canvas.height - 150);
         ctx.stroke();
 
+        // ノーツ描画
         notes.forEach(note => {
-            if (note.hit) return;
-            ctx.fillStyle = '#00ccff';
-            ctx.fillRect(note.x - 40, note.y - 20, 80, 40);
-            ctx.strokeStyle = '#0088cc';
-            ctx.lineWidth = 2;
-            ctx.strokeRect(note.x - 40, note.y - 20, 80, 40);
+            ctx.fillStyle = 'white';
+            ctx.beginPath();
+            ctx.arc(note.x, note.y, 15, 0, Math.PI * 2);
+            ctx.fill();
         });
 
+        // 判定エフェクト描画
         judgeEffects.forEach(e => {
-            const alpha = 1 - e.frame / 30;
-            ctx.globalAlpha = alpha;
-            ctx.fillStyle = e.judge === 'PERFECT' ? '#00ff00' : e.judge === 'GREAT' ? '#00ffff' : '#ffff00';
-            ctx.font = 'bold 36px Arial';
+            ctx.fillStyle = e.judge === 'PERFECT' ? 'lime' : e.judge === 'GREAT' ? 'cyan' : 'orange';
+            ctx.font = '30px Arial';
             ctx.textAlign = 'center';
+            ctx.globalAlpha = 1 - e.frame / 30;
             ctx.fillText(e.judge, e.x, e.y - e.frame * 2);
             ctx.globalAlpha = 1;
         });
 
-        tapEffects.forEach((e, i) => {
-            const maxFrames = 20;
-            const alpha = 1 - e.frame / maxFrames;
-            const radius = 30 + e.frame * 3;
-
-            ctx.save();
-            ctx.globalAlpha = alpha;
-            ctx.strokeStyle = '#fffacd';
-            ctx.lineWidth = 3;
+        // タップエフェクト描画
+        tapEffects.forEach((e, idx) => {
+            ctx.strokeStyle = `rgba(255,255,255,${1 - e.frame / 15})`;
+            ctx.lineWidth = 4;
             ctx.beginPath();
-            ctx.arc(e.x, e.y, radius, 0, Math.PI * 2);
+            ctx.arc(e.x, e.y, 20 + e.frame * 3, 0, Math.PI * 2);
             ctx.stroke();
-
-            ctx.strokeStyle = '#ffffaa';
-            ctx.lineWidth = 1.5;
-            ctx.beginPath();
-            ctx.arc(e.x, e.y, radius / 2, 0, Math.PI * 2);
-            ctx.stroke();
-            ctx.restore();
 
             e.frame++;
-            if (e.frame > maxFrames) {
-                tapEffects.splice(i, 1);
-            }
+            if (e.frame > 15) tapEffects.splice(idx, 1);
         });
 
-        ctx.fillStyle = '#fff';
-        ctx.font = '24px Arial';
+        // スコアとコンボ
+        ctx.fillStyle = 'white';
+        ctx.font = '28px Arial';
         ctx.textAlign = 'left';
-        ctx.fillText(`Score: ${score}`, 20, 40);
-        ctx.fillText(`Combo: ${combo}`, 20, 70);
+        ctx.fillText('SCORE: ' + score, 20, 40);
+        ctx.fillText('COMBO: ' + combo, 20, 80);
     }
 
+    // --- ゲームループ ---
     function gameLoop() {
         if (!gameRunning) return;
         updateNotes();
@@ -357,6 +353,7 @@ document.addEventListener('DOMContentLoaded', () => {
         requestAnimationFrame(gameLoop);
     }
 
+    // --- ゲーム開始 ---
     function startGame() {
         score = 0;
         combo = 0;
@@ -364,41 +361,70 @@ document.addEventListener('DOMContentLoaded', () => {
         notes = [];
         judgeEffects = [];
         tapEffects = [];
-        gameRunning = true;
+        updateDifficulty();
 
         bgm.src = selectedSong.file;
         bgm.currentTime = 0;
         bgm.play();
 
-        updateDifficulty();
-
+        gameRunning = true;
         spawnNote();
         spawnInterval = setInterval(spawnNote, noteSpawnRate);
 
-        if (gameTimerTimeout) clearTimeout(gameTimerTimeout);
         gameTimerTimeout = setTimeout(() => {
             stopGame();
             showResult();
-        }, 30000);
+        }, 60 * 1000); // 1分間プレイ（曲の長さで調整可）
 
-        showScreen('gameScreen');
         gameLoop();
+        showScreen('gameScreen');
     }
 
+    // --- ゲーム停止 ---
     function stopGame() {
         gameRunning = false;
         clearInterval(spawnInterval);
-        spawnInterval = null;
+        clearTimeout(gameTimerTimeout);
         bgm.pause();
         bgm.currentTime = 0;
     }
 
+    // --- リザルト表示 ---
     function showResult() {
-        showScreen('resultScreen');
         finalScoreDisplay.textContent = score;
         maxComboDisplay.textContent = maxCombo;
+        showScreen('resultScreen');
     }
 
+    // --- スマホタップ判定 ---
+    function handleTouch(x, y) {
+        const laneAreaWidth = canvas.width * 0.5;
+        const laneWidth = laneAreaWidth / laneKeys.length;
+        const laneStartX = (canvas.width - laneAreaWidth) / 2;
+
+        // 判定ラインの下200pxだけ有効にする
+        if (y < canvas.height - 200) return;
+
+        if (x < laneStartX || x > laneStartX + laneAreaWidth) return;
+
+        const laneIndex = Math.floor((x - laneStartX) / laneWidth);
+        if (laneIndex < 0 || laneIndex >= laneKeys.length) return;
+
+        const laneKey = laneKeys[laneIndex];
+
+        judgeNote(laneKey);
+
+        tapSound.currentTime = 0;
+        tapSound.play();
+
+        tapEffects.push({
+            x: lanes[laneIndex],
+            y: canvas.height - 150,
+            frame: 0,
+        });
+    }
+
+    // --- キーボード判定 ---
     window.addEventListener('keydown', e => {
         if (!gameRunning) return;
         if (laneKeys.includes(e.key.toUpperCase())) {
@@ -408,5 +434,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    // --- 初期化呼び出し ---
     init();
 });

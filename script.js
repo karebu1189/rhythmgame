@@ -24,7 +24,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let selectedSong = { title: 'メデ', file: 'メデ.mp3' };
 
     let lanes = [];
-    let laneKeys = ['D', 'F', 'G', 'H', 'J', 'K', 'L', ';'];
+    const laneKeys = ['D', 'F', 'G', 'H', 'J', 'K', 'L', ';'];
     let notes = [];
     let effects = [];
     let judgeEffects = [];
@@ -73,23 +73,38 @@ document.addEventListener('DOMContentLoaded', () => {
     backButton.onclick = () => location.reload();
     backButtonResult.onclick = () => location.reload();
 
-    window.addEventListener('resize', () => {
+    // 基準サイズ
+    const BASE_LANE_WIDTH = 60;
+    const BASE_NOTE_SIZE = 50;
+    const LANE_COUNT = 8;
+
+    // 可変ノーツサイズ
+    let noteSize = BASE_NOTE_SIZE;
+
+    function resizeCanvasAndLanes() {
         canvas.width = window.innerWidth;
         canvas.height = window.innerHeight;
-    });
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
 
-    function initializeLanes() {
+        // レーン幅は画面幅の80%以内に収める
+        const maxTotalWidth = canvas.width * 0.8;
+        let laneWidth = Math.min(BASE_LANE_WIDTH, maxTotalWidth / LANE_COUNT);
+
+        const totalWidth = laneWidth * LANE_COUNT;
+        const startX = (canvas.width - totalWidth) / 2 + laneWidth / 2;
+
         lanes = [];
-        let laneWidth = 60;
-        let totalWidth = laneWidth * 8;
-        let startX = (canvas.width - totalWidth) / 2 + laneWidth / 2;
-
-        for (let i = 0; i < 8; i++) {
+        for (let i = 0; i < LANE_COUNT; i++) {
             lanes.push(startX + i * laneWidth);
         }
+
+        noteSize = laneWidth * 0.8;
     }
+
+    window.addEventListener('resize', () => {
+        resizeCanvasAndLanes();
+    });
+
+    resizeCanvasAndLanes();
 
     function startGame() {
         initializeLanes();
@@ -108,19 +123,26 @@ document.addEventListener('DOMContentLoaded', () => {
             if (gameRunning) {
                 let laneIndex = Math.floor(Math.random() * lanes.length);
                 let lane = lanes[laneIndex];
-                notes.push({ x: lane - 25, y: 0, laneIndex: laneIndex });
+                notes.push({ x: lane - noteSize / 2, y: 0, laneIndex: laneIndex });
             }
         }, noteSpawnRate);
 
         draw();
     }
 
+    // initializeLanesはレーン位置初期化だが、resizeで代用できるので中身は空でもOK
+    function initializeLanes() {
+        // 今はresizeCanvasAndLanesで処理済み
+    }
+
     function draw() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+        // 判定ライン
         ctx.fillStyle = 'cyan';
         ctx.fillRect(0, canvas.height - 100, canvas.width, 5);
 
+        // レーン線
         ctx.strokeStyle = 'white';
         lanes.forEach(lane => {
             ctx.beginPath();
@@ -129,17 +151,21 @@ document.addEventListener('DOMContentLoaded', () => {
             ctx.stroke();
         });
 
+        // ノーツ
         ctx.fillStyle = 'white';
         notes.forEach(note => {
-            ctx.fillRect(note.x, note.y, 50, 50);
+            ctx.fillRect(note.x, note.y, noteSize, noteSize);
             note.y += noteSpeed;
         });
 
+        // キー表示
         ctx.fillStyle = 'yellow';
+        ctx.font = `${noteSize * 0.5}px Arial`;
         lanes.forEach((lane, index) => {
-            ctx.fillText(laneKeys[index], lane - 5, canvas.height - 10);
+            ctx.fillText(laneKeys[index], lane - noteSize / 4, canvas.height - 10);
         });
 
+        // 判定エフェクト表示
         judgeEffects.forEach((effect, index) => {
             ctx.fillStyle = effect.color;
             ctx.font = '30px Arial';
@@ -148,21 +174,23 @@ document.addEventListener('DOMContentLoaded', () => {
             if (effect.timer <= 0) judgeEffects.splice(index, 1);
         });
 
+        // 円形エフェクト
         effects.forEach((effect, index) => {
             ctx.strokeStyle = 'cyan';
             ctx.beginPath();
-            ctx.arc(effect.x + 25, effect.y + 25, 30 - effect.timer, 0, 2 * Math.PI);
+            ctx.arc(effect.x + noteSize / 2, effect.y + noteSize / 2, 30 - effect.timer, 0, 2 * Math.PI);
             ctx.stroke();
             effect.timer--;
             if (effect.timer <= 0) effects.splice(index, 1);
         });
 
+        // スコア・コンボ表示
         ctx.fillStyle = 'white';
         ctx.font = '24px Arial';
         ctx.fillText('Score: ' + score, 20, 40);
         ctx.fillText('Combo: ' + combo, 20, 80);
 
-        notes = notes.filter(note => note.y <= canvas.height + 50);
+        notes = notes.filter(note => note.y <= canvas.height + noteSize);
 
         if (gameRunning) {
             requestAnimationFrame(draw);
@@ -226,7 +254,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         for (let i = 0; i < notes.length; i++) {
             let note = notes[i];
-            if (clickX >= note.x && clickX <= note.x + 50 && clickY >= note.y && clickY <= note.y + 50) {
+            if (clickX >= note.x && clickX <= note.x + noteSize && clickY >= note.y && clickY <= note.y + noteSize) {
                 handleHit(note, i);
                 break;
             }
@@ -257,11 +285,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
         for (let i = 0; i < notes.length; i++) {
             let note = notes[i];
-            if (touchX >= note.x && touchX <= note.x + 50 && touchY >= note.y && touchY <= note.y + 50) {
+            if (touchX >= note.x && touchX <= note.x + noteSize && touchY >= note.y && touchY <= note.y + noteSize) {
                 handleHit(note, i);
                 break;
             }
         }
     });
-
 });

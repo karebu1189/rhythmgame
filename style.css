@@ -1,115 +1,134 @@
-/* style.css */
-
+/* 全体 */
 body, html {
-    margin: 0;
-    padding: 0;
-    overflow: hidden;
-    background-color: #111;
-    font-family: 'Arial', sans-serif;
-    color: white;
+  margin: 0; padding: 0; height: 100%; width: 100%;
+  background-color: #111;
+  color: white;
+  font-family: Arial, sans-serif;
+  overflow: hidden;
 }
 
-#titleScreen, #gameScreen, #resultScreen {
-    display: none;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    height: 100vh;
+/* 画面共通クラス */
+.screen {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-color: #111;
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
 }
 
-#titleScreen {
-    display: flex;
-    background: linear-gradient(45deg, #222, #555);
+/* フレックスセンター用 */
+.flex-center {
+  display: flex !important;
 }
 
-#songList {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    max-width: 600px;
-    margin: 20px auto;
-    justify-content: center;
+/* タイトル画面の曲リスト */
+.song-list {
+  margin: 20px 0;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  max-width: 600px;
+  gap: 10px;
 }
 
 .songItem {
-    background-color: #333;
-    border: 2px solid #666;
-    border-radius: 8px;
-    padding: 10px 20px;
-    cursor: pointer;
-    color: white;
-    font-weight: bold;
-    transition: all 0.3s ease;
+  background-color: #222;
+  border: none;
+  color: white;
+  padding: 10px 15px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.3s;
 }
 
 .songItem:hover {
-    background-color: #555;
-    border-color: #f90;
+  background-color: #555;
 }
 
 .songItem.selected {
-    background-color: #f90;
-    border-color: #ffa500;
-    color: black;
+  background-color: #00ccff;
+  color: #111;
+  font-weight: bold;
 }
 
-button {
-    cursor: pointer;
-    background-color: #f90;
-    border: none;
-    border-radius: 5px;
-    padding: 10px 20px;
-    font-weight: bold;
-    color: black;
-    margin: 10px;
-    transition: background-color 0.3s ease;
+#difficultySelector {
+  margin-bottom: 20px;
+  padding: 5px 10px;
+  font-size: 16px;
 }
 
-button:hover:not(:disabled) {
-    background-color: #ffb733;
+/* スタートボタン */
+#startGameButton {
+  background-color: #00ccff;
+  border: none;
+  color: #111;
+  padding: 12px 30px;
+  font-size: 18px;
+  font-weight: bold;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.3s;
 }
 
-button:disabled {
-    background-color: #666;
-    cursor: default;
-    color: #ccc;
+#startGameButton:disabled {
+  background-color: #444;
+  cursor: not-allowed;
 }
 
-select {
-    margin: 10px;
-    padding: 5px 10px;
-    font-weight: bold;
-    border-radius: 5px;
-    border: 1px solid #666;
-    background-color: #222;
-    color: white;
+/* ゲーム画面 */
+#gameCanvas {
+  display: block;
+  width: 100vw;
+  height: 100vh;
+  background-color: #111;
 }
 
-/* リザルト画面のランク表示 */
-.result-rank {
-    font-size: 48px;
-    margin-top: 20px;
-    font-weight: bold;
+/* バックボタン */
+.btn-back {
+  position: absolute;
+  top: 15px;
+  left: 15px;
+  background-color: #222;
+  border: none;
+  color: white;
+  padding: 8px 15px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  z-index: 10;
+  transition: background-color 0.3s;
 }
 
-.rank-SS { color: gold; }
-.rank-S { color: #00ccff; }
-.rank-A { color: #33cc33; }
-.rank-B { color: #ffcc00; }
-.rank-C { color: #999; }
-.start-button, .control-button {
-    background: linear-gradient(145deg, #ffcb05, #ffc400);
-    color: #222;
-    font-weight: bold;
-    padding: 14px 24px;
-    font-size: 1.1rem;
-    margin: 10px;
-    border-radius: 12px;
-    border: none;
-    box-shadow: 0 4px 0 #b89400;
-    transition: all 0.2s ease;
+.btn-back:hover {
+  background-color: #555;
 }
-.start-button:hover, .control-button:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 6px rgba(0, 0, 0, 0.2);
+
+/* リザルト画面 */
+#resultScreen h2 {
+  margin-bottom: 20px;
+}
+
+#resultScreen p {
+  font-size: 20px;
+  margin: 8px 0;
+}
+
+#retryButton, #backButtonResult {
+  background-color: #00ccff;
+  border: none;
+  color: #111;
+  padding: 10px 25px;
+  font-size: 16px;
+  font-weight: bold;
+  border-radius: 8px;
+  cursor: pointer;
+  margin: 10px;
+  transition: background-color 0.3s;
+}
+
+#retryButton:hover, #backButtonResult:hover {
+  background-color: #0099cc;
 }

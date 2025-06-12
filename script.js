@@ -326,7 +326,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // タップエフェクト描画
         tapEffects.forEach((e, idx) => {
-            ctx.strokeStyle = rgba(255,255,255,${1 - e.frame / 15});
+            ctx.strokeStyle = `rgba(255,255,255,${1 - e.frame / 15})`;
             ctx.lineWidth = 4;
             ctx.beginPath();
             ctx.arc(e.x, e.y, 20 + e.frame * 3, 0, Math.PI * 2);
@@ -371,14 +371,10 @@ document.addEventListener('DOMContentLoaded', () => {
         spawnNote();
         spawnInterval = setInterval(spawnNote, noteSpawnRate);
 
-       bgm.onloadedmetadata = () => {
-    const durationMs = bgm.duration * 1000;
-    clearTimeout(gameTimerTimeout);
-    gameTimerTimeout = setTimeout(() => {
-        stopGame();
-        showResult();
-    }, durationMs);
-};
+        gameTimerTimeout = setTimeout(() => {
+            stopGame();
+            showResult();
+        }, 60 * 1000); // 1分間プレイ（曲の長さで調整可）
 
         gameLoop();
         showScreen('gameScreen');

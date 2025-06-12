@@ -1,17 +1,19 @@
 <!DOCTYPE html>
 <html lang="ja">
-
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>My Rhythm Game</title>
+    <title>プロセカ風音ゲー</title>
     <style>
-        /* シンプルな画面切替とレイアウト */
-        body, html {
-            margin: 0; padding: 0; height: 100%; background: #111; color: white; font-family: Arial, sans-serif;
+        body {
+            margin: 0;
+            background-color: #111;
+            color: #fff;
+            font-family: Arial, sans-serif;
             user-select: none;
+            overflow: hidden;
         }
-        .screen {
+        #titleScreen, #gameScreen, #resultScreen {
             display: none;
             height: 100vh;
             width: 100vw;
@@ -19,155 +21,84 @@
             align-items: center;
             flex-direction: column;
         }
-        #titleScreen {
-            display: flex;
-        }
-        .phone-frame {
+        #titleScreen, #resultScreen {
             background: #222;
-            padding: 20px;
-            border-radius: 10px;
-            width: 90vw; max-width: 400px;
-            text-align: center;
         }
-        .game-title {
-            font-size: 2rem;
-            margin-bottom: 10px;
-        }
-        .select-box {
-            font-size: 1.2rem;
-            padding: 6px;
-            margin: 10px 0;
-            width: 100%;
-        }
-        .song-list {
-            max-height: 300px;
-            overflow-y: auto;
-            margin: 10px 0;
-            text-align: left;
+        #songList {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 20px;
+            max-width: 600px;
+            justify-content: center;
         }
         .songItem {
-            padding: 6px 10px;
-            cursor: pointer;
-            border-bottom: 1px solid #444;
-            color: white;
-            background: transparent;
+            background: #333;
             border: none;
-            width: 100%;
-            text-align: left;
-            font-size: 1rem;
+            padding: 10px 20px;
+            color: white;
+            cursor: pointer;
+            border-radius: 5px;
+            transition: background 0.3s;
         }
         .songItem.selected {
-            background-color: #f90;
-            color: black;
-            font-weight: bold;
+            background: #ffaa00;
+            color: #000;
         }
-        .start-button, .control-button {
-            background-color: #ff6;
-            border: none;
-            padding: 12px 20px;
-            font-size: 1.2rem;
-            margin: 10px 5px;
-            cursor: pointer;
-            border-radius: 6px;
-            user-select: none;
+        button:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
         }
-        #gameScreen {
-            display: flex;
-            flex-direction: column;
-            position: relative;
-            background: black;
+        #difficultySelector {
+            margin-bottom: 20px;
+            padding: 5px 10px;
+            font-size: 16px;
         }
-        #gameCanvas {
-            flex-grow: 1;
-            display: block;
-            background: #222;
-            width: 100vw;
-            height: 100vh;
-        }
-        .game-buttons {
+        #scoreDisplay, #comboDisplay {
             position: absolute;
             top: 10px;
-            right: 10px;
-        }
-        #resultScreen {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            flex-direction: column;
-            background: #111;
-        }
-        .result-frame {
-            background: #222;
-            padding: 30px;
-            border-radius: 12px;
-            text-align: center;
-            min-width: 250px;
-        }
-        .result-score {
-            font-size: 1.8rem;
-            margin-bottom: 12px;
-        }
-        .result-rank {
-            font-size: 2.4rem;
+            left: 10px;
+            font-size: 24px;
             font-weight: bold;
-            margin-bottom: 20px;
         }
-        .rank-SS { color: gold; }
-        .rank-S { color: silver; }
-        .rank-A { color: deepskyblue; }
-        .rank-B { color: lightgreen; }
-        .rank-C { color: gray; }
     </style>
 </head>
-
 <body>
     <!-- タイトル画面 -->
-    <div id="titleScreen" class="screen">
-        <div class="phone-frame">
-            <h1 class="game-title">My Rhythm Game</h1>
-
-            <select id="difficultySelector" class="select-box">
-                <option value="easy">Easy</option>
-                <option value="normal" selected>Normal</option>
-                <option value="hard">Hard</option>
-            </select>
-
-            <div id="songList" class="song-list"></div>
-
-            <button id="startGameButton" class="start-button" disabled>Tap to Start</button>
-        </div>
+    <div id="titleScreen" style="display:flex;">
+        <h1>プロセカ風音ゲー</h1>
+        <div id="songList"></div>
+        <select id="difficultySelector">
+            <option value="easy">簡単</option>
+            <option value="normal" selected>普通</option>
+            <option value="hard">難しい</option>
+        </select>
+        <button id="startGameButton" disabled>ゲームスタート</button>
     </div>
 
     <!-- ゲーム画面 -->
-    <div id="gameScreen" class="screen">
+    <div id="gameScreen">
         <canvas id="gameCanvas"></canvas>
-
-        <div class="game-buttons">
-            <button id="retryButton" class="control-button">Retry</button>
-            <button id="backButton" class="control-button">Back to Title</button>
-        </div>
+        <button id="backButton" style="position:absolute; top:10px; right:10px;">タイトルに戻る</button>
     </div>
 
     <!-- リザルト画面 -->
-    <div id="resultScreen" class="screen">
-        <div class="result-frame">
-            <h2>リザルト</h2>
-            <div id="finalScore" class="result-score"></div>
-            <div id="finalRank" class="result-rank"></div>
-            <button id="backButtonResult" class="control-button">Back to Title</button>
-        </div>
+    <div id="resultScreen" style="display:none; flex-direction: column; justify-content: center; align-items: center;">
+        <h2>ゲーム終了！</h2>
+        <p id="resultScore"></p>
+        <p id="resultMaxCombo"></p>
+        <button id="retryButton">リトライ</button>
+        <button id="backButtonResult">タイトルに戻る</button>
     </div>
 
-    <!-- 効果音 -->
+    <!-- 音声 -->
     <audio id="bgm" preload="auto"></audio>
-    <audio id="tapSound" src="tap.mp3" preload="auto"></audio>
-    <audio id="perfectSound" src="perfect.mp3" preload="auto"></audio>
-    <audio id="greatSound" src="great.mp3" preload="auto"></audio>
-    <audio id="goodSound" src="good.mp3" preload="auto"></audio>
-    <audio id="missSound" src="miss.mp3" preload="auto"></audio>
+    <audio id="tapSound" src="sounds/tap.mp3" preload="auto"></audio>
+    <audio id="perfectSound" src="sounds/perfect.mp3" preload="auto"></audio>
+    <audio id="greatSound" src="sounds/great.mp3" preload="auto"></audio>
+    <audio id="goodSound" src="sounds/good.mp3" preload="auto"></audio>
+    <audio id="missSound" src="sounds/miss.mp3" preload="auto"></audio>
 
-    <!-- メインスクリプト -->
-    <script src="script.js"></script>
+    <script src="game.js"></script>
 </body>
-
 </html>

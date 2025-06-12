@@ -43,9 +43,27 @@ document.addEventListener('DOMContentLoaded', () => {
     let noteSpawnRate = difficulties.normal.spawnRate;
 
     const songs = [
-        { title: 'メデ', file: 'メデ.mp3' },
-        { title: 'トンデモワンダーズ', file: 'トンデモワンダーズ.mp3' }
-    ];
+    { title: 'メデ', file: 'メデ.mp3' },
+    { title: 'トンデモワンダーズ', file: 'トンデモワンダーズ.mp3' },
+    { title: 'Tell Your World', file: 'TellYourWorld.mp3' },
+    { title: 'ロキ', file: 'ロキ.mp3' },
+    { title: 'ブリキノダンス', file: 'ブリキノダンス.mp3' },
+    { title: 'シャルル', file: 'シャルル.mp3' },
+    { title: 'グッバイ宣言', file: 'グッバイ宣言.mp3' },
+    { title: 'ドラマツルギー', file: 'ドラマツルギー.mp3' },
+    { title: 'KING', file: 'KING.mp3' },
+    { title: 'ビターチョコデコレーション', file: 'ビターチョコデコレーション.mp3' },
+    { title: 'ロウワー', file: 'ロウワー.mp3' },
+    { title: '夜に駆ける', file: '夜に駆ける.mp3' },
+    { title: 'マトリョシカ', file: 'マトリョシカ.mp3' },
+    { title: '千本桜', file: '千本桜.mp3' },
+    { title: 'ヒバナ', file: 'ヒバナ.mp3' },
+    { title: '命に嫌われている', file: '命に嫌われている.mp3' },
+    { title: 'エンヴィーベイビー', file: 'エンヴィーベイビー.mp3' },
+    { title: 'ベノム', file: 'ベノム.mp3' },
+    { title: '乙女解剖', file: '乙女解剖.mp3' },
+    { title: 'ゴーストルール', file: 'ゴーストルール.mp3' }
+];
 
     songs.forEach(song => {
         const songButton = document.createElement('div');

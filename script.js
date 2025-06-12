@@ -45,7 +45,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const songs = [
     { title: 'メデ', file: 'メデ.mp3' },
     { title: 'トンデモワンダーズ', file: 'トンデモワンダーズ.mp3' },
-    { title: 'Tell Your World', file: 'TellYourWorld.mp3' },
+    { title: 'テトリス', file: 'テトリス.mp3' },
     { title: 'ロキ', file: 'ロキ.mp3' },
     { title: 'ブリキノダンス', file: 'ブリキノダンス.mp3' },
     { title: 'シャルル', file: 'シャルル.mp3' },

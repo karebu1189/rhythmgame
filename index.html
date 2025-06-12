@@ -120,22 +120,17 @@
     </style>
 </head>
 
-<body>
-    <!-- タイトル画面 -->
-    <div id="titleScreen" class="screen">
-        <div class="phone-frame">
-            <h1 class="game-title">My Rhythm Game</h1>
+<div id="titleScreen">
+    <div id="logo">リズムゲーム</div>
+    <div id="songList"></div>
+    <select id="difficultySelector">
+        <option value="easy">EASY</option>
+        <option value="normal" selected>NORMAL</option>
+        <option value="hard">HARD</option>
+    </select>
+    <button id="startGameButton" disabled>スタート</button>
+</div>
 
-            <select id="difficultySelector" class="select-box">
-                <option value="easy">Easy</option>
-                <option value="normal" selected>Normal</option>
-                <option value="hard">Hard</option>
-            </select>
-
-            <div id="songList" class="song-list"></div>
-
-            <button id="startGameButton" class="start-button" disabled>Tap to Start</button>
-        </div>
     </div>
 
     <!-- ゲーム画面 -->

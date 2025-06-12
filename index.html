@@ -9,31 +9,44 @@
 </head>
 
 <body>
-    <div id="titleScreen">
+    <!-- タイトル画面 -->
+    <div id="titleScreen" class="screen">
         <div class="phone-frame">
             <h1 class="game-title">My Rhythm Game</h1>
-            <select id="difficultySelector">
+
+            <select id="difficultySelector" class="select-box">
                 <option value="easy">Easy</option>
                 <option value="normal" selected>Normal</option>
                 <option value="hard">Hard</option>
             </select>
-            <div id="songList"></div>
+
+            <div id="songList" class="song-list"></div>
+
             <button id="startGameButton" class="start-button">Tap to Start</button>
         </div>
     </div>
 
-    <div id="gameScreen">
+    <!-- ゲーム画面 -->
+    <div id="gameScreen" class="screen">
         <canvas id="gameCanvas"></canvas>
-        <button id="retryButton">Retry</button>
-        <button id="backButton">Back to Title</button>
+
+        <div class="game-buttons">
+            <button id="retryButton" class="control-button">Retry</button>
+            <button id="backButton" class="control-button">Back to Title</button>
+        </div>
     </div>
 
-    <div id="resultScreen">
-        <div id="finalScore"></div>
-        <div id="finalRank"></div>
-        <button id="backButtonResult">Back to Title</button>
+    <!-- リザルト画面 -->
+    <div id="resultScreen" class="screen">
+        <div class="result-frame">
+            <h2>リザルト</h2>
+            <div id="finalScore" class="result-score"></div>
+            <div id="finalRank" class="result-rank"></div>
+            <button id="backButtonResult" class="control-button">Back to Title</button>
+        </div>
     </div>
 
+    <!-- 効果音 -->
     <audio id="bgm"></audio>
     <audio id="tapSound" src="tap.mp3"></audio>
     <audio id="perfectSound" src="perfect.mp3"></audio>
@@ -41,6 +54,7 @@
     <audio id="goodSound" src="good.mp3"></audio>
     <audio id="missSound" src="miss.mp3"></audio>
 
+    <!-- メインスクリプト -->
     <script src="script.js"></script>
 </body>
 

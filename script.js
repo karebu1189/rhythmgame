@@ -39,6 +39,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let spawnInterval = null;
     let noteSpeed = 5;
     let noteSpawnRate = 400;  // ms
+    let gameTimerTimeout = null; // タイマーID
 
     // --- 曲リスト ---
     const songs = [
@@ -308,34 +309,36 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // 判定エフェクト描画
         judgeEffects.forEach(e => {
-            ctx.font = 'bold 28px Arial';
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
             let color = 'white';
-            if (e.judge === 'PERFECT') color = 'gold';
-            else if (e.judge === 'GREAT') color = 'skyblue';
-            else if (e.judge === 'GOOD') color = 'lightgreen';
-
+            switch (e.judge) {
+                case 'PERFECT': color = 'gold'; break;
+                case 'GREAT': color = 'skyblue'; break;
+                case 'GOOD': color = 'lightgreen'; break;
+            }
             ctx.fillStyle = color;
-            ctx.globalAlpha = 1 - e.frame / 30;
-            ctx.fillText(e.judge, e.x, e.y - e.frame);
-            ctx.globalAlpha = 1;
+            ctx.font = '30px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText(e.judge, e.x, e.y - e.frame * 2);
         });
 
-        // スコア表示
-        ctx.fillStyle = 'white';
+        // スコア・コンボ表示
+        ctx.fillStyle = '#fff';
         ctx.font = '24px Arial';
         ctx.textAlign = 'left';
         ctx.fillText(`Score: ${score}`, 20, 40);
-        ctx.fillText(`Combo: ${combo}`, 20, 70);
+
+        ctx.fillText(`Combo: ${combo}`, 20, 80);
     }
 
-    // --- メインループ ---
+    // --- ゲームループ ---
     function gameLoop() {
         if (!gameRunning) return;
+
         updateNotes();
         updateJudgeEffects();
+
         draw();
+
         requestAnimationFrame(gameLoop);
     }
 
@@ -343,72 +346,72 @@ document.addEventListener('DOMContentLoaded', () => {
     function startGame() {
         resetGame();
         showScreen('gameScreen');
+
+        // BGM再生はcanplaythrough待ちで安定
         bgm.src = selectedSong.file;
         bgm.currentTime = 0;
-        bgm.play();
+        bgm.oncanplaythrough = () => {
+            bgm.play();
+        };
 
         gameRunning = true;
         spawnInterval = setInterval(spawnNote, noteSpawnRate);
 
-        // キー入力監視
         window.addEventListener('keydown', keydownHandler);
 
         gameLoop();
+
+        gameTimer();
     }
 
     // --- ゲーム終了 ---
     function stopGame() {
         gameRunning = false;
         clearInterval(spawnInterval);
-        spawnInterval = null;
-        bgm.pause();
+        clearTimeout(gameTimerTimeout);
         window.removeEventListener('keydown', keydownHandler);
+        bgm.pause();
+        bgm.currentTime = 0;
     }
 
-    // --- リセット ---
+    // --- ゲームリセット ---
     function resetGame() {
         notes = [];
         judgeEffects = [];
+        effects = [];
         score = 0;
         combo = 0;
         updateDifficulty();
+        clearInterval(spawnInterval);
+        clearTimeout(gameTimerTimeout);
+        window.removeEventListener('keydown', keydownHandler);
     }
 
-    // --- キー押下処理 ---
+    // --- 60秒タイマー ---
+    function gameTimer() {
+        clearTimeout(gameTimerTimeout);
+        gameTimerTimeout = setTimeout(() => {
+            // ゲーム終了
+            stopGame();
+
+            // 結果画面表示
+            showScreen('resultScreen');
+
+            // スコア表示
+            document.getElementById('finalScore').textContent = `Score: ${score}`;
+            document.getElementById('finalCombo').textContent = `Max Combo: ${combo}`;
+        }, 60000);
+    }
+
+    // --- キーボード入力 ---
     function keydownHandler(e) {
         if (!gameRunning) return;
         const key = e.key.toUpperCase();
         if (laneKeys.includes(key)) {
-            judgeNote(key);
             tapSound.play();
+            judgeNote(key);
         }
     }
 
-    // --- リザルト画面表示 ---
-    function showResult() {
-        stopGame();
-        showScreen('resultScreen');
-
-        document.getElementById('finalScore').textContent = `Score: ${score}`;
-
-        let rank = 'C';
-        if (score >= 15000) rank = 'SS';
-        else if (score >= 12000) rank = 'S';
-        else if (score >= 9000) rank = 'A';
-        else if (score >= 6000) rank = 'B';
-
-        const rankEl = document.getElementById('finalRank');
-        rankEl.textContent = rank;
-        rankEl.className = 'result-rank rank-' + rank;
-    }
-
-    // --- ゲーム時間制限（例: 60秒で終了） ---
-    function gameTimer() {
-        setTimeout(() => {
-            showResult();
-        }, 60000); // 60秒
-    }
-
-    // 初期化
     init();
 });

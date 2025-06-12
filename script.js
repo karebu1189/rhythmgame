@@ -30,7 +30,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let lanes = [];
     let notes = [];
     let judgeEffects = [];
-    let effects = [];
+    let tapEffects = [];
 
     let score = 0;
     let combo = 0;
@@ -39,7 +39,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let spawnInterval = null;
     let noteSpeed = 5;
     let noteSpawnRate = 400;  // ms
-    let gameTimerTimeout = null; // タイマーID
+    let gameTimerTimeout = null;
 
     // --- 曲リスト ---
     const songs = [
@@ -147,7 +147,6 @@ document.addEventListener('DOMContentLoaded', () => {
         canvas.width = window.innerWidth;
         canvas.height = window.innerHeight;
 
-        // レーン幅は画面幅の50%に制限して細く
         const laneAreaWidth = canvas.width * 0.5;
         const laneWidth = laneAreaWidth / laneKeys.length;
 
@@ -177,6 +176,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const laneIndex = laneKeys.indexOf(key);
         if (laneIndex === -1) return;
+
+        // タップエフェクト追加
+        tapEffects.push({
+            x: lanes[laneIndex],
+            y: canvas.height - 150,
+            frame: 0,
+        });
 
         const judgeLineY = canvas.height - 150;
         let judged = false;
@@ -274,59 +280,77 @@ document.addEventListener('DOMContentLoaded', () => {
 
         for (let i = 0; i < laneKeys.length; i++) {
             const x = startX + laneWidth * i;
-            ctx.fillStyle = (i % 2 === 0) ? '#222' : '#333';
+            ctx.fillStyle = '#222';
             ctx.fillRect(x, 0, laneWidth, canvas.height);
 
-            ctx.strokeStyle = '#555';
-            ctx.lineWidth = 2;
-            ctx.beginPath();
-            ctx.moveTo(x, 0);
-            ctx.lineTo(x, canvas.height);
-            ctx.stroke();
+            ctx.strokeStyle = '#444';
+            ctx.lineWidth = 1;
+            ctx.strokeRect(x, 0, laneWidth, canvas.height);
         }
 
-        // 判定ライン
+        // 判定ライン描画
         const judgeLineY = canvas.height - 150;
-        ctx.strokeStyle = '#f90';
-        ctx.lineWidth = 5;
+        ctx.strokeStyle = '#ffff00';
+        ctx.lineWidth = 4;
         ctx.beginPath();
-        ctx.moveTo(0, judgeLineY);
-        ctx.lineTo(canvas.width, judgeLineY);
+        ctx.moveTo(startX, judgeLineY);
+        ctx.lineTo(startX + laneAreaWidth, judgeLineY);
         ctx.stroke();
 
-        // ノーツ描画（横長の四角形）
+        // ノーツ描画（横長四角形）
         notes.forEach(note => {
-            ctx.fillStyle = '#ff6';
-            const width = 80;  // 横長
-            const height = 40;
-            ctx.fillRect(note.x - width / 2, note.y - height / 2, width, height);
-
-            ctx.strokeStyle = '#ffa';
-            ctx.lineWidth = 3;
-            ctx.strokeRect(note.x - width / 2, note.y - height / 2, width, height);
+            if (note.hit) return;
+            ctx.fillStyle = '#00ccff';
+            ctx.fillRect(note.x - 40, note.y - 20, 80, 40);
+            ctx.strokeStyle = '#0088cc';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(note.x - 40, note.y - 20, 80, 40);
         });
 
-        // 判定エフェクト描画
+        // 判定エフェクト描画（文字と光彩）
         judgeEffects.forEach(e => {
-            let color = 'white';
-            switch (e.judge) {
-                case 'PERFECT': color = 'gold'; break;
-                case 'GREAT': color = 'skyblue'; break;
-                case 'GOOD': color = 'lightgreen'; break;
-            }
-            ctx.fillStyle = color;
-            ctx.font = '30px Arial';
+            const alpha = 1 - e.frame / 30;
+            ctx.globalAlpha = alpha;
+            ctx.fillStyle = e.judge === 'PERFECT' ? '#00ff00' : e.judge === 'GREAT' ? '#00ffff' : '#ffff00';
+            ctx.font = 'bold 36px Arial';
             ctx.textAlign = 'center';
             ctx.fillText(e.judge, e.x, e.y - e.frame * 2);
+            ctx.globalAlpha = 1;
         });
 
-        // スコア・コンボ表示
+        // タップエフェクト描画（光の波紋）
+        tapEffects.forEach((e, i) => {
+            const maxFrames = 20;
+            const alpha = 1 - e.frame / maxFrames;
+            const radius = 30 + e.frame * 3;
+
+            ctx.save();
+            ctx.globalAlpha = alpha;
+            ctx.strokeStyle = '#fffacd';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.arc(e.x, e.y, radius, 0, Math.PI * 2);
+            ctx.stroke();
+
+            ctx.strokeStyle = '#ffffaa';
+            ctx.lineWidth = 1.5;
+            ctx.beginPath();
+            ctx.arc(e.x, e.y, radius / 2, 0, Math.PI * 2);
+            ctx.stroke();
+            ctx.restore();
+
+            e.frame++;
+            if (e.frame > maxFrames) {
+                tapEffects.splice(i, 1);
+            }
+        });
+
+        // スコア＆コンボ描画
         ctx.fillStyle = '#fff';
         ctx.font = '24px Arial';
         ctx.textAlign = 'left';
         ctx.fillText(`Score: ${score}`, 20, 40);
-
-        ctx.fillText(`Combo: ${combo}`, 20, 80);
+        ctx.fillText(`Combo: ${combo}`, 20, 70);
     }
 
     // --- ゲームループ ---
@@ -345,6 +369,7 @@ document.addEventListener('DOMContentLoaded', () => {
         maxCombo = 0;
         notes = [];
         judgeEffects = [];
+        tapEffects = [];
         gameRunning = true;
 
         bgm.src = selectedSong.file;
@@ -356,7 +381,6 @@ document.addEventListener('DOMContentLoaded', () => {
         spawnNote();
         spawnInterval = setInterval(spawnNote, noteSpawnRate);
 
-        // ゲーム時間は曲の長さ（例: 30秒）
         if (gameTimerTimeout) clearTimeout(gameTimerTimeout);
         gameTimerTimeout = setTimeout(() => {
             stopGame();
@@ -393,6 +417,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // --- 初期化実行 ---
+    // --- 初期化 ---
     init();
 });

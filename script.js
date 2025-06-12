@@ -35,6 +35,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let score = 0;
     let combo = 0;
+    let maxCombo = 0;
     let gameRunning = false;
     let spawnInterval = null;
     let noteSpeed = 5;
@@ -235,6 +236,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 goodSound.play();
                 break;
         }
+        if (combo > maxCombo) maxCombo = combo;
+
         judgeEffects.push({ x: note.x, y: canvas.height - 150, judge, frame: 0 });
     }
 
@@ -295,16 +298,16 @@ document.addEventListener('DOMContentLoaded', () => {
         ctx.lineTo(canvas.width, judgeLineY);
         ctx.stroke();
 
-        // ノーツ描画
+        // ノーツ描画（横長の四角形）
         notes.forEach(note => {
             ctx.fillStyle = '#ff6';
-            ctx.beginPath();
-            ctx.arc(note.x, note.y, 20, 0, Math.PI * 2);
-            ctx.fill();
-            // 縁取り
+            const width = 60;  // 横長の幅
+            const height = 30; // 高さは短め
+            ctx.fillRect(note.x - width / 2, note.y - height / 2, width, height);
+
             ctx.strokeStyle = '#ffa';
             ctx.lineWidth = 3;
-            ctx.stroke();
+            ctx.strokeRect(note.x - width / 2, note.y - height / 2, width, height);
         });
 
         // 判定エフェクト描画
@@ -378,40 +381,35 @@ document.addEventListener('DOMContentLoaded', () => {
     function resetGame() {
         notes = [];
         judgeEffects = [];
-        effects = [];
         score = 0;
         combo = 0;
+        maxCombo = 0;
         updateDifficulty();
-        clearInterval(spawnInterval);
-        clearTimeout(gameTimerTimeout);
-        window.removeEventListener('keydown', keydownHandler);
     }
 
-    // --- 60秒タイマー ---
+    // --- キー入力 ---
+    function keydownHandler(e) {
+        const key = e.key.toUpperCase();
+        judgeNote(key);
+        tapSound.play();
+    }
+
+    // --- ゲームタイマー（曲の長さで終了） ---
     function gameTimer() {
-        clearTimeout(gameTimerTimeout);
+        // とりあえず曲長めの60秒で終了設定（mp3の実際の長さに差し替え推奨）
         gameTimerTimeout = setTimeout(() => {
-            // ゲーム終了
             stopGame();
-
-            // 結果画面表示
-            showScreen('resultScreen');
-
-            // スコア表示
-            document.getElementById('finalScore').textContent = `Score: ${score}`;
-            document.getElementById('finalCombo').textContent = `Max Combo: ${combo}`;
+            showResult();
         }, 60000);
     }
 
-    // --- キーボード入力 ---
-    function keydownHandler(e) {
-        if (!gameRunning) return;
-        const key = e.key.toUpperCase();
-        if (laneKeys.includes(key)) {
-            tapSound.play();
-            judgeNote(key);
-        }
+    // --- リザルト表示 ---
+    function showResult() {
+        showScreen('resultScreen');
+        document.getElementById('resultScore').textContent = score;
+        document.getElementById('resultCombo').textContent = maxCombo;
     }
 
+    // --- 初期化呼び出し ---
     init();
 });

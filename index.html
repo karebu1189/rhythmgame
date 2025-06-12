@@ -1,92 +1,39 @@
 <!DOCTYPE html>
 <html lang="ja">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>プロセカ風音ゲー</title>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body, html { width: 100%; height: 100%; overflow: hidden; background-color: #111; color: white; font-family: sans-serif; }
-
-        #titleScreen, #gameScreen, #resultScreen {
-            display: none;
-            width: 100%;
-            height: 100%;
-            justify-content: center;
-            align-items: center;
-            flex-direction: column;
-        }
-
-        #titleScreen { display: flex; flex-direction: column; align-items: center; }
-
-        .songList {
-            display: flex;
-            overflow-x: auto;
-            width: 80%;
-            padding: 20px;
-            gap: 20px;
-        }
-
-        .songItem {
-            min-width: 200px;
-            height: 120px;
-            background-color: #333;
-            border-radius: 15px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: transform 0.3s, background-color 0.3s;
-            flex-shrink: 0;
-        }
-
-        .songItem.selected {
-            background-color: #00e0ff;
-            transform: scale(1.1);
-        }
-
-        #gameCanvas {
-            background-color: black;
-        }
-
-        select, button {
-            margin: 10px;
-            padding: 10px 20px;
-            font-size: 16px;
-            border-radius: 10px;
-            border: none;
-            cursor: pointer;
-        }
-    </style>
+    <title>リズムゲーム</title>
+    <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
-    <!-- 曲選択画面 -->
     <div id="titleScreen">
-        <h1>曲を選択してください</h1>
-        <div class="songList" id="songList"></div>
-        <select id="difficultySelector">
-            <option value="easy">Easy</option>
-            <option value="normal" selected>Normal</option>
-            <option value="hard">Hard</option>
-        </select>
-        <button id="startGameButton">スタート</button>
+        <div class="phone-frame">
+            <h1 class="game-title">My Rhythm Game</h1>
+            <select id="difficultySelector">
+                <option value="easy">Easy</option>
+                <option value="normal" selected>Normal</option>
+                <option value="hard">Hard</option>
+            </select>
+            <div id="songList"></div>
+            <button id="startGameButton" class="start-button">Tap to Start</button>
+        </div>
     </div>
 
-    <!-- ゲーム画面 -->
     <div id="gameScreen">
         <canvas id="gameCanvas"></canvas>
-        <button id="backButton">戻る</button>
+        <button id="retryButton">Retry</button>
+        <button id="backButton">Back to Title</button>
     </div>
 
-    <!-- リザルト画面 -->
     <div id="resultScreen">
-        <h1 id="finalScore">スコア: 0</h1>
-        <h1 id="finalRank">ランク: D</h1>
-        <button id="retryButton">もう一度</button>
-        <button id="backButtonResult">曲選択に戻る</button>
+        <div id="finalScore"></div>
+        <div id="finalRank"></div>
+        <button id="backButtonResult">Back to Title</button>
     </div>
 
-    <!-- 音声 -->
     <audio id="bgm"></audio>
     <audio id="tapSound" src="tap.mp3"></audio>
     <audio id="perfectSound" src="perfect.mp3"></audio>
@@ -94,6 +41,7 @@
     <audio id="goodSound" src="good.mp3"></audio>
     <audio id="missSound" src="miss.mp3"></audio>
 
-    <script src="game.js"></script>
+    <script src="script.js"></script>
 </body>
+
 </html>

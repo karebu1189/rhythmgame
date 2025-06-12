@@ -1,213 +1,99 @@
-let canvas = document.getElementById('gameCanvas');
-let ctx = canvas.getContext('2d');
+/* style.css */
 
-let titleScreen = document.getElementById('titleScreen');
-let gameScreen = document.getElementById('gameScreen');
-let resultScreen = document.getElementById('resultScreen');
-
-let startGameButton = document.getElementById('startGameButton');
-let retryButton = document.getElementById('retryButton');
-let backButton = document.getElementById('backButton');
-let backButtonResult = document.getElementById('backButtonResult');
-
-let bgm = document.getElementById('bgm');
-let tapSound = document.getElementById('tapSound');
-let perfectSound = document.getElementById('perfectSound');
-let greatSound = document.getElementById('greatSound');
-let goodSound = document.getElementById('goodSound');
-let missSound = document.getElementById('missSound');
-
-let songList = document.getElementById('songList');
-let difficultySelector = document.getElementById('difficultySelector');
-
-let notes = [];
-let score = 0;
-let combo = 0;
-let gameRunning = false;
-let spawnInterval;
-let currentSong;
-let judgeEffects = [];
-let resized = false;
-
-let songs = [
-    { name: 'Test Song', src: 'test.mp3', bpm: 120 }
-];
-
-let difficultySettings = {
-    easy: 1.2,
-    normal: 1.0,
-    hard: 0.8
-};
-
-songs.forEach((song, index) => {
-    let songButton = document.createElement('button');
-    songButton.textContent = song.name;
-    songButton.classList.add('songItem');
-    songButton.onclick = () => selectSong(index);
-    songList.appendChild(songButton);
-});
-
-function selectSong(index) {
-    currentSong = songs[index];
-    bgm.src = currentSong.src;
+body, html {
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    background-color: #111;
+    font-family: 'Arial', sans-serif;
+    color: white;
 }
 
-function startGame() {
-    gameRunning = true;
-    score = 0;
-    combo = 0;
-    notes = [];
-    judgeEffects = [];
-    resized = false;
-
-    resizeCanvas();
-    window.addEventListener('resize', resizeCanvas);
-
-    bgm.play();
-
-    spawnInterval = setInterval(spawnNote, 60000 / (currentSong.bpm * difficultySettings[difficultySelector.value]));
-
-    requestAnimationFrame(gameLoop);
+#titleScreen, #gameScreen, #resultScreen {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
 }
 
-function spawnNote() {
-    notes.push({ x: Math.random() * canvas.width, y: 0, hit: false });
+#titleScreen {
+    display: flex;
+    background: linear-gradient(45deg, #222, #555);
 }
 
-function gameLoop() {
-    if (!gameRunning) return;
-
-    update();
-    draw();
-
-    requestAnimationFrame(gameLoop);
+#songList {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    max-width: 600px;
+    margin: 20px auto;
+    justify-content: center;
 }
 
-function update() {
-    notes.forEach(note => note.y += 5);
-    notes = notes.filter(note => {
-        if (note.y > canvas.height + 50 && !note.hit) {
-            missSound.play();
-            combo = 0;
-            return false;
-        }
-        return true;
-    });
+.songItem {
+    background-color: #333;
+    border: 2px solid #666;
+    border-radius: 8px;
+    padding: 10px 20px;
+    cursor: pointer;
+    color: white;
+    font-weight: bold;
+    transition: all 0.3s ease;
 }
 
-function draw() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-    // 判定ライン
-    ctx.fillStyle = 'rgba(255, 0, 0, 0.7)';
-    ctx.fillRect(0, canvas.height - 150, canvas.width, 10);
-
-    notes.forEach(note => {
-        ctx.beginPath();
-        ctx.arc(note.x, note.y, 20, 0, Math.PI * 2);
-        ctx.fillStyle = 'blue';
-        ctx.fill();
-    });
-
-    // スコア表示
-    ctx.fillStyle = 'black';
-    ctx.font = '24px Arial';
-    ctx.fillText('Score: ' + score, 20, 30);
-    ctx.fillText('Combo: ' + combo, 20, 60);
+.songItem:hover {
+    background-color: #555;
+    border-color: #f90;
 }
 
-canvas.addEventListener('click', function (e) {
-    if (!gameRunning) return;
-
-    let rect = canvas.getBoundingClientRect();
-    let x = e.clientX - rect.left;
-    let y = e.clientY - rect.top;
-
-    let hit = false;
-    notes.forEach(note => {
-        if (!note.hit && Math.abs(note.y - (canvas.height - 150)) < 30 && Math.abs(note.x - x) < 50) {
-            note.hit = true;
-            let distance = Math.abs(note.y - (canvas.height - 150));
-
-            if (distance < 10) {
-                score += 300;
-                combo++;
-                perfectSound.play();
-            } else if (distance < 20) {
-                score += 200;
-                combo++;
-                greatSound.play();
-            } else {
-                score += 100;
-                combo++;
-                goodSound.play();
-            }
-
-            hit = true;
-        }
-    });
-
-    if (!hit) {
-        missSound.play();
-        combo = 0;
-    }
-});
-
-function endGame() {
-    gameRunning = false;
-    clearInterval(spawnInterval);
-    window.removeEventListener('resize', resizeCanvas);
-    bgm.pause();
-
-    gameScreen.style.display = 'none';
-    resultScreen.style.display = 'flex';
-
-    document.getElementById('finalScore').textContent = 'Score: ' + score;
-    document.getElementById('finalRank').textContent = 'Rank: ' + getRank(score);
+.songItem.selected {
+    background-color: #f90;
+    border-color: #ffa500;
+    color: black;
 }
 
-function getRank(score) {
-    if (score > 5000) return 'S';
-    if (score > 3000) return 'A';
-    if (score > 1500) return 'B';
-    return 'C';
+button {
+    cursor: pointer;
+    background-color: #f90;
+    border: none;
+    border-radius: 5px;
+    padding: 10px 20px;
+    font-weight: bold;
+    color: black;
+    margin: 10px;
+    transition: background-color 0.3s ease;
 }
 
-function resizeCanvas() {
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
+button:hover:not(:disabled) {
+    background-color: #ffb733;
 }
 
-bgm.onended = () => {
-    endGame();
-};
+button:disabled {
+    background-color: #666;
+    cursor: default;
+    color: #ccc;
+}
 
-startGameButton.onclick = () => {
-    titleScreen.style.display = 'none';
-    gameScreen.style.display = 'flex';
-    startGame();
-};
+select {
+    margin: 10px;
+    padding: 5px 10px;
+    font-weight: bold;
+    border-radius: 5px;
+    border: 1px solid #666;
+    background-color: #222;
+    color: white;
+}
 
-retryButton.onclick = () => {
-    gameScreen.style.display = 'flex';
-    resultScreen.style.display = 'none';
-    startGame();
-};
+/* リザルト画面のランク表示 */
+.result-rank {
+    font-size: 48px;
+    margin-top: 20px;
+    font-weight: bold;
+}
 
-backButton.onclick = () => {
-    gameRunning = false;
-    clearInterval(spawnInterval);
-    bgm.pause();
-    bgm.currentTime = 0;
-    gameScreen.style.display = 'none';
-    titleScreen.style.display = 'flex';
-};
-
-backButtonResult.onclick = () => {
-    gameRunning = false;
-    clearInterval(spawnInterval);
-    bgm.pause();
-    bgm.currentTime = 0;
-    resultScreen.style.display = 'none';
-    titleScreen.style.display = 'flex';
-};
+.rank-SS { color: gold; }
+.rank-S { color: #00ccff; }
+.rank-A { color: #33cc33; }
+.rank-B { color: #ffcc00; }
+.rank-C { color: #999; }

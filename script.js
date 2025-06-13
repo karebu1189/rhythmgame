@@ -335,8 +335,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const startX = (canvas.width - laneAreaWidth) / 2;
 
         // レーン背景
-        ctx.fillStyle = '#111';
-        ctx.fillRect(startX, 0, laneAreaWidth, canvas.height);
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
+        ctx.fillRect(x, 0, laneWidth, canvas.height);
 
         // レーン区切り線
         ctx.strokeStyle = '#555';

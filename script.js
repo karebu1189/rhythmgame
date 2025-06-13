@@ -47,7 +47,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- 曲リスト ---
     const songs = [
-        { title: 'メデ', file: 'メデ.mp3', bpm: 172 video: 'メデ背景.mp4' },
+        { title: 'メデ', file: 'メデ.mp3', bpm: 172 },
         { title: 'トンデモワンダーズ', file: 'トンデモワンダーズ.mp3', bpm: 172 },
         { title: 'テトリス', file: 'テトリス.mp3', bpm: 170 },
         { title: 'マーシャル・マキシマイザー', file: 'マーシャル・マキシマイザー.mp3', bpm: 135 },

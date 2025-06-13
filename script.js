@@ -25,6 +25,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const finalScoreDisplay = document.getElementById('finalScore');
     const maxComboDisplay = document.getElementById('maxCombo');
 
+    // --- 背景動画追加 ---
+    const bgVideo = document.getElementById('bgVideo');
+
     // --- 定数 ---
     const laneKeys = ['D', 'F', 'G', 'H', 'J', 'K', 'L', ';'];
 
@@ -62,7 +65,6 @@ document.addEventListener('DOMContentLoaded', () => {
         { title: 'Pretender', file: 'Pretender.mp3', bpm: 140 }
     ];
 
-    // --- 初期化 ---
     function init() {
         songList.innerHTML = '';
         songs.forEach((song, i) => {
@@ -325,18 +327,22 @@ document.addEventListener('DOMContentLoaded', () => {
         bgm.src = selectedSong.file;
         bgm.currentTime = 0;
 
+        // 背景動画再生処理
+        bgVideo.currentTime = 0;
+        bgVideo.play();
+        bgVideo.style.display = 'block';
+
         gameRunning = true;
 
-       bgm.onloadedmetadata = () => {
-    bgm.play();
-    startNoteSpawning();
-};
+        bgm.onloadedmetadata = () => {
+            bgm.play();
+            startNoteSpawning();
+        };
 
-bgm.onended = () => {
-    stopGame();
-    showResult();
-};
-
+        bgm.onended = () => {
+            stopGame();
+            showResult();
+        };
 
         gameLoop();
         showScreen('gameScreen');
@@ -347,6 +353,11 @@ bgm.onended = () => {
         stopNoteSpawning();
         bgm.pause();
         bgm.currentTime = 0;
+
+        // 背景動画停止処理
+        bgVideo.pause();
+        bgVideo.currentTime = 0;
+        bgVideo.style.display = 'none';
     }
 
     function showResult() {

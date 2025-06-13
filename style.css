@@ -1,134 +1,169 @@
-/* 全体 */
+/* 共通設定 */
 body, html {
-  margin: 0; padding: 0; height: 100%; width: 100%;
-  background-color: #111;
-  color: white;
-  font-family: Arial, sans-serif;
-  overflow: hidden;
+    margin: 0; padding: 0; height: 100%; background: #111; color: white; font-family: 'Arial', sans-serif;
+    user-select: none;
+    overflow: hidden;
 }
 
-/* 画面共通クラス */
 .screen {
-  position: absolute;
-  top: 0; left: 0; right: 0; bottom: 0;
-  background-color: #111;
-  display: none;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
+    display: none;
+    height: 100vh;
+    width: 100vw;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
 }
 
-/* フレックスセンター用 */
-.flex-center {
-  display: flex !important;
+/* タイトル画面 */
+#titleScreen {
+    display: flex;
 }
 
-/* タイトル画面の曲リスト */
+.phone-frame {
+    background: linear-gradient(135deg, #222, #333);
+    padding: 20px;
+    border-radius: 10px;
+    width: 90vw; max-width: 400px;
+    text-align: center;
+    box-shadow: 0 0 20px #00ccff;
+    animation: fadeIn 1s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: scale(0.95); }
+    to { opacity: 1; transform: scale(1); }
+}
+
+.game-title {
+    font-size: 2.5rem;
+    margin-bottom: 10px;
+    color: #00ccff;
+}
+
+.select-box {
+    font-size: 1.2rem;
+    padding: 6px;
+    margin: 10px 0;
+    width: 100%;
+    border-radius: 6px;
+    border: none;
+    background: #333;
+    color: white;
+}
+
 .song-list {
-  margin: 20px 0;
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  max-width: 600px;
-  gap: 10px;
+    max-height: 300px;
+    overflow-y: auto;
+    margin: 10px 0;
+    text-align: left;
 }
 
 .songItem {
-  background-color: #222;
-  border: none;
-  color: white;
-  padding: 10px 15px;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 14px;
-  transition: background-color 0.3s;
+    padding: 8px 12px;
+    cursor: pointer;
+    border-bottom: 1px solid #444;
+    color: white;
+    background: transparent;
+    border: none;
+    width: 100%;
+    text-align: left;
+    font-size: 1rem;
+    transition: background-color 0.3s;
 }
 
 .songItem:hover {
-  background-color: #555;
+    background-color: #555;
 }
 
 .songItem.selected {
-  background-color: #00ccff;
-  color: #111;
-  font-weight: bold;
+    background-color: #00ccff;
+    color: #111;
+    font-weight: bold;
 }
 
-#difficultySelector {
-  margin-bottom: 20px;
-  padding: 5px 10px;
-  font-size: 16px;
+.start-button, .control-button {
+    background-color: #00ccff;
+    border: none;
+    padding: 12px 20px;
+    font-size: 1.2rem;
+    margin: 10px 5px;
+    cursor: pointer;
+    border-radius: 6px;
+    user-select: none;
+    transition: background-color 0.3s;
 }
 
-/* スタートボタン */
-#startGameButton {
-  background-color: #00ccff;
-  border: none;
-  color: #111;
-  padding: 12px 30px;
-  font-size: 18px;
-  font-weight: bold;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: background-color 0.3s;
+.start-button:hover, .control-button:hover {
+    background-color: #0099cc;
 }
 
-#startGameButton:disabled {
-  background-color: #444;
-  cursor: not-allowed;
+.start-button:disabled {
+    background-color: #444;
+    cursor: not-allowed;
 }
 
-/* ゲーム画面 */
+#gameScreen {
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    background: black;
+}
+
 #gameCanvas {
-  display: block;
-  width: 100vw;
-  height: 100vh;
-  background-color: #111;
+    flex-grow: 1;
+    display: block;
+    background: #111;
+    width: 100vw;
+    height: 100vh;
 }
 
-/* バックボタン */
-.btn-back {
-  position: absolute;
-  top: 15px;
-  left: 15px;
-  background-color: #222;
-  border: none;
-  color: white;
-  padding: 8px 15px;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 14px;
-  z-index: 10;
-  transition: background-color 0.3s;
+.game-buttons {
+    position: absolute;
+    top: 10px;
+    right: 10px;
 }
 
-.btn-back:hover {
-  background-color: #555;
+#resultScreen {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    background: #111;
+    animation: fadeIn 0.5s ease;
 }
 
-/* リザルト画面 */
-#resultScreen h2 {
-  margin-bottom: 20px;
+.result-frame {
+    background: linear-gradient(135deg, #222, #333);
+    padding: 30px;
+    border-radius: 12px;
+    text-align: center;
+    min-width: 250px;
+    box-shadow: 0 0 15px #00ccff;
 }
 
-#resultScreen p {
-  font-size: 20px;
-  margin: 8px 0;
+.result-score {
+    font-size: 1.8rem;
+    margin-bottom: 12px;
 }
 
-#retryButton, #backButtonResult {
-  background-color: #00ccff;
-  border: none;
-  color: #111;
-  padding: 10px 25px;
-  font-size: 16px;
-  font-weight: bold;
-  border-radius: 8px;
-  cursor: pointer;
-  margin: 10px;
-  transition: background-color 0.3s;
+.result-rank {
+    font-size: 2.4rem;
+    font-weight: bold;
+    margin-bottom: 20px;
 }
 
-#retryButton:hover, #backButtonResult:hover {
-  background-color: #0099cc;
+.rank-SS { color: gold; }
+.rank-S { color: silver; }
+.rank-A { color: deepskyblue; }
+.rank-B { color: lightgreen; }
+.rank-C { color: gray; }
+
+/* 背景動画 */
+#bgVideo {
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 100%;
+    object-fit: cover;
+    z-index: -1;
+    display: none;
+    filter: brightness(0.5);
 }

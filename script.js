@@ -334,15 +334,35 @@ document.addEventListener('DOMContentLoaded', () => {
 
         gameRunning = true;
 
-        bgm.onloadedmetadata = () => {
-            bgm.play();
-            startNoteSpawning();
-        };
+        function startGame() {
+    score = 0;
+    combo = 0;
+    maxCombo = 0;
+    notes = [];
+    judgeEffects = [];
+    tapEffects = [];
+    updateDifficulty();
 
-        bgm.onended = () => {
-            stopGame();
-            showResult();
-        };
+    bgm.src = selectedSong.file;
+    bgm.currentTime = 0;
+
+    gameRunning = true;
+
+    bgm.play().then(() => {
+        startNoteSpawning();
+    }).catch(err => {
+        console.error('再生エラー:', err);
+    });
+
+    bgm.onended = () => {
+        stopGame();
+        showResult();
+    };
+
+    gameLoop();
+    showScreen('gameScreen');
+}
+
 
         gameLoop();
         showScreen('gameScreen');

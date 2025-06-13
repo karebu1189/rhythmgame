@@ -248,152 +248,220 @@ document.addEventListener('DOMContentLoaded', () => {
             if (note.laneIndex === laneIndex && !note.hit) {
                 const dist = Math.abs(note.y - judgeLineY);
 
-                if (dist <= 20) { handleHit(note, i, 'PERFECT'); judged = true; break; }
-                else if (dist <= 40) { handleHit(note, i, 'GREAT'); judged = true; break; }
-                else if (dist <= 60) { handleHit(note, i, 'GOOD'); judged = true; break; }
+                if (dist <= 20) {
+                    note.hit = true;
+
+                    // 判定ランク判定
+                    let result = '';
+                    if (dist <= 8) {
+                        score += 1000;
+                        combo++;
+                        result = 'PERFECT';
+                        perfectSound.currentTime = 0;
+                        perfectSound.play();
+                    } else if (dist <= 15) {
+                        score += 700;
+                        combo++;
+                        result = 'GREAT';
+                        greatSound.currentTime = 0;
+                        greatSound.play();
+                    } else {
+                        score += 300;
+                        combo++;
+                        result = 'GOOD';
+                        goodSound.currentTime = 0;
+                        goodSound.play();
+                    }
+                    note.judgeResult = result;
+
+                    maxCombo = Math.max(maxCombo, combo);
+
+                    judgeEffects.push({ x: note.x, y: note.y, result, frame: 0 });
+
+                    judged = true;
+                    break;
+                }
             }
         }
 
         if (!judged) {
-            missSound.play();
             combo = 0;
+            missSound.currentTime = 0;
+            missSound.play();
         }
-    }
-
-    function handleHit(note, index, judge) {
-        note.hit = true;
-        notes.splice(index, 1);
-
-        switch (judge) {
-            case 'PERFECT': score += 1000; combo++; perfectSound.play(); break;
-            case 'GREAT': score += 700; combo++; greatSound.play(); break;
-            case 'GOOD': score += 400; combo++; goodSound.play(); break;
-        }
-
-        if (combo > maxCombo) maxCombo = combo;
-
-        judgeEffects.push({ x: note.x, y: canvas.height - 150, judge, frame: 0 });
     }
 
     // ====================
-    // ゲームループ
+    // タッチ判定
     // ====================
-    function gameLoop() {
-        if (!gameRunning) return;
-
-        updateNotes();
-        updateJudgeEffects();
-        draw();
-
-        requestAnimationFrame(gameLoop);
-    }
-
-    function updateNotes() {
-        for (let i = notes.length - 1; i >= 0; i--) {
-            const note = notes[i];
-            note.y += noteSpeed;
-
-            if (!note.hit && note.y > canvas.height - 110) {
-                notes.splice(i, 1);
-                missSound.play();
-                combo = 0;
-            }
-        }
-    }
-
-    function updateJudgeEffects() {
-        for (let i = judgeEffects.length - 1; i >= 0; i--) {
-            const e = judgeEffects[i];
-            e.frame++;
-            if (e.frame > 30) judgeEffects.splice(i, 1);
-        }
-    }
-
-    function draw() {
-        ctx.fillStyle = '#111';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-
+    function handleTouch(x, y) {
         const laneAreaWidth = canvas.width * 0.5;
         const laneWidth = laneAreaWidth / laneKeys.length;
         const startX = (canvas.width - laneAreaWidth) / 2;
 
         for (let i = 0; i < laneKeys.length; i++) {
-            const x = startX + laneWidth * i;
-            ctx.fillStyle = '#222';
-            ctx.fillRect(x, 0, laneWidth - 2, canvas.height);
+            const laneXStart = startX + laneWidth * i;
+            const laneXEnd = laneXStart + laneWidth;
+            if (x >= laneXStart && x <= laneXEnd) {
+                judgeNote(laneKeys[i]);
+                break;
+            }
+        }
+    }
 
-            ctx.fillStyle = '#555';
-            ctx.font = '24px Arial';
-            ctx.textAlign = 'center';
-            ctx.fillText(laneKeys[i], x + laneWidth / 2, canvas.height - 100);
+    // ====================
+    // ゲームループ（描画・更新）
+    // ====================
+    function gameLoop() {
+        if (!gameRunning) return;
+
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        drawLanes();
+        updateAndDrawNotes();
+        updateAndDrawJudgeEffects();
+        updateAndDrawTapEffects();
+        drawScore();
+
+        requestAnimationFrame(gameLoop);
+    }
+
+    // ====================
+    // レーン描画
+    // ====================
+    function drawLanes() {
+        const laneAreaWidth = canvas.width * 0.5;
+        const laneWidth = laneAreaWidth / lanes.length;
+        const startX = (canvas.width - laneAreaWidth) / 2;
+
+        // レーン背景
+        ctx.fillStyle = '#111';
+        ctx.fillRect(startX, 0, laneAreaWidth, canvas.height);
+
+        // レーン区切り線
+        ctx.strokeStyle = '#555';
+        ctx.lineWidth = 2;
+        for (let i = 0; i <= lanes.length; i++) {
+            const x = startX + laneWidth * i;
+            ctx.beginPath();
+            ctx.moveTo(x, 0);
+            ctx.lineTo(x, canvas.height);
+            ctx.stroke();
         }
 
+        // 判定ライン
+        const judgeLineY = canvas.height - 150;
         ctx.strokeStyle = 'yellow';
         ctx.lineWidth = 4;
         ctx.beginPath();
-        ctx.moveTo(startX, canvas.height - 150);
-        ctx.lineTo(startX + laneAreaWidth, canvas.height - 150);
+        ctx.moveTo(startX, judgeLineY);
+        ctx.lineTo(startX + laneAreaWidth, judgeLineY);
         ctx.stroke();
-
-        notes.forEach(note => {
-            ctx.fillStyle = 'white';
-            ctx.beginPath();
-            ctx.arc(note.x, note.y, 15, 0, Math.PI * 2);
-            ctx.fill();
-        });
-
-        judgeEffects.forEach(e => {
-            ctx.fillStyle = e.judge === 'PERFECT' ? 'lime' : e.judge === 'GREAT' ? 'cyan' : 'orange';
-            ctx.font = '30px Arial';
-            ctx.textAlign = 'center';
-            ctx.globalAlpha = 1 - e.frame / 30;
-            ctx.fillText(e.judge, e.x, e.y - e.frame * 2);
-            ctx.globalAlpha = 1;
-        });
-
-        tapEffects.forEach((e, idx) => {
-            ctx.strokeStyle = `rgba(255,255,255,${1 - e.frame / 15})`;
-            ctx.lineWidth = 4;
-            ctx.beginPath();
-            ctx.arc(e.x, e.y, 20 + e.frame * 3, 0, Math.PI * 2);
-            ctx.stroke();
-
-            e.frame++;
-            if (e.frame > 15) tapEffects.splice(idx, 1);
-        });
-
-        ctx.fillStyle = 'white';
-        ctx.font = '28px Arial';
-        ctx.textAlign = 'left';
-        ctx.fillText('SCORE: ' + score, 20, 40);
-        ctx.fillText('COMBO: ' + combo, 20, 80);
     }
 
+    // ====================
+    // ノーツ更新・描画
+    // ====================
+    function updateAndDrawNotes() {
+        const judgeLineY = canvas.height - 150;
+
+        for (let i = notes.length - 1; i >= 0; i--) {
+            const note = notes[i];
+            if (!note.hit) {
+                note.y += noteSpeed;
+                if (note.y > canvas.height) {
+                    // ミス判定
+                    notes.splice(i, 1);
+                    combo = 0;
+                    missSound.currentTime = 0;
+                    missSound.play();
+                }
+            }
+
+            // ノーツ描画
+            if (!note.hit) {
+                ctx.fillStyle = 'deepskyblue';
+                ctx.beginPath();
+                ctx.arc(note.x, note.y, 15, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+    }
+
+    // ====================
+    // 判定エフェクト描画
+    // ====================
+    function updateAndDrawJudgeEffects() {
+        for (let i = judgeEffects.length - 1; i >= 0; i--) {
+            const effect = judgeEffects[i];
+            ctx.font = 'bold 30px Arial';
+            ctx.textAlign = 'center';
+
+            switch (effect.result) {
+                case 'PERFECT':
+                    ctx.fillStyle = 'lime';
+                    break;
+                case 'GREAT':
+                    ctx.fillStyle = 'deepskyblue';
+                    break;
+                case 'GOOD':
+                    ctx.fillStyle = 'yellow';
+                    break;
+                case 'MISS':
+                    ctx.fillStyle = 'red';
+                    break;
+                default:
+                    ctx.fillStyle = 'white';
+            }
+
+            ctx.fillText(effect.result, effect.x, effect.y - effect.frame * 2);
+
+            effect.frame++;
+            if (effect.frame > 30) judgeEffects.splice(i, 1);
+        }
+    }
+
+    // ====================
+    // タップエフェクト描画
+    // ====================
+    function updateAndDrawTapEffects() {
+        for (let i = tapEffects.length - 1; i >= 0; i--) {
+            const effect = tapEffects[i];
+            const alpha = 1 - effect.frame / 20;
+            ctx.strokeStyle = `rgba(255,255,255,${alpha})`;
+            ctx.lineWidth = 3;
+
+            ctx.beginPath();
+            ctx.arc(effect.x, effect.y, 20 + effect.frame * 2, 0, Math.PI * 2);
+            ctx.stroke();
+
+            effect.frame++;
+            if (effect.frame > 20) tapEffects.splice(i, 1);
+        }
+    }
+
+    // ====================
+    // スコア描画
+    // ====================
+    function drawScore() {
+        ctx.fillStyle = 'white';
+        ctx.font = '24px Arial';
+        ctx.textAlign = 'left';
+        ctx.fillText(`Score: ${score}`, 20, 40);
+        ctx.fillText(`Combo: ${combo}`, 20, 70);
+    }
+
+    // ====================
+    // リザルト表示
+    // ====================
     function showResult() {
         finalScoreDisplay.textContent = score;
         maxComboDisplay.textContent = maxCombo;
         showScreen('resultScreen');
     }
 
-    function handleTouch(x, y) {
-        const laneAreaWidth = canvas.width * 0.5;
-        const laneWidth = laneAreaWidth / laneKeys.length;
-        const laneStartX = (canvas.width - laneAreaWidth) / 2;
-
-        if (y < canvas.height - 200) return;
-        if (x < laneStartX || x > laneStartX + laneAreaWidth) return;
-
-        const laneIndex = Math.floor((x - laneStartX) / laneWidth);
-        if (laneIndex < 0 || laneIndex >= laneKeys.length) return;
-
-        const laneKey = laneKeys[laneIndex];
-        judgeNote(laneKey);
-
-        tapSound.currentTime = 0;
-        tapSound.play();
-
-        tapEffects.push({ x: lanes[laneIndex], y: canvas.height - 150, frame: 0 });
-    }
-
+    // ====================
+    // 初期化実行
+    // ====================
     init();
 });

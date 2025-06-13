@@ -1,5 +1,7 @@
 document.addEventListener('DOMContentLoaded', () => {
-    // --- DOM要素 ---
+    // ====================
+    // DOM要素取得
+    // ====================
     const titleScreen = document.getElementById('titleScreen');
     const gameScreen = document.getElementById('gameScreen');
     const resultScreen = document.getElementById('resultScreen');
@@ -16,6 +18,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const ctx = canvas.getContext('2d');
 
     const bgm = document.getElementById('bgm');
+    const bgVideo = document.getElementById('bgVideo');
+
     const tapSound = document.getElementById('tapSound');
     const perfectSound = document.getElementById('perfectSound');
     const greatSound = document.getElementById('greatSound');
@@ -25,10 +29,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const finalScoreDisplay = document.getElementById('finalScore');
     const maxComboDisplay = document.getElementById('maxCombo');
 
-    const bgVideo = document.getElementById('bgVideo');
-
     const laneKeys = ['D', 'F', 'G', 'H', 'J', 'K', 'L', ';'];
 
+    // ====================
+    // ゲームデータ
+    // ====================
     let selectedSong = null;
     let lanes = [];
     let notes = [];
@@ -38,8 +43,8 @@ document.addEventListener('DOMContentLoaded', () => {
     let score = 0;
     let combo = 0;
     let maxCombo = 0;
-    let gameRunning = false;
     let noteSpeed = 5;
+    let gameRunning = false;
     let spawnIntervalId = null;
 
     const songs = [
@@ -61,13 +66,17 @@ document.addEventListener('DOMContentLoaded', () => {
         { title: 'Pretender', file: 'Pretender.mp3', bpm: 140, mv: 'pretender.mp4' }
     ];
 
+    // ====================
+    // 初期化
+    // ====================
     function init() {
+        // 曲リスト生成
         songList.innerHTML = '';
-        songs.forEach((song, i) => {
+        songs.forEach((song, index) => {
             const btn = document.createElement('button');
             btn.textContent = song.title;
             btn.className = 'songItem';
-            btn.addEventListener('click', () => selectSong(i));
+            btn.addEventListener('click', () => selectSong(index));
             songList.appendChild(btn);
         });
 
@@ -75,6 +84,7 @@ document.addEventListener('DOMContentLoaded', () => {
         resizeCanvas();
         window.addEventListener('resize', resizeCanvas);
 
+        // ボタン処理
         backButton.addEventListener('click', () => {
             stopGame();
             showScreen('titleScreen');
@@ -88,8 +98,9 @@ document.addEventListener('DOMContentLoaded', () => {
             startGame();
         });
 
-        difficultySelector.addEventListener('change', () => updateDifficulty());
+        difficultySelector.addEventListener('change', updateDifficulty);
 
+        // タッチ処理
         canvas.addEventListener('touchstart', (e) => {
             e.preventDefault();
             for (const touch of e.touches) {
@@ -97,6 +108,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }, { passive: false });
 
+        // キー処理
         window.addEventListener('keydown', e => {
             if (!gameRunning) return;
             if (laneKeys.includes(e.key.toUpperCase())) {
@@ -109,13 +121,17 @@ document.addEventListener('DOMContentLoaded', () => {
         showScreen('titleScreen');
     }
 
+    // ====================
+    // 画面表示切り替え
+    // ====================
     function showScreen(screenId) {
         [titleScreen, gameScreen, resultScreen].forEach(s => s.style.display = 'none');
-        if (screenId === 'titleScreen') titleScreen.style.display = 'flex';
-        else if (screenId === 'gameScreen') gameScreen.style.display = 'flex';
-        else if (screenId === 'resultScreen') resultScreen.style.display = 'flex';
+        document.getElementById(screenId).style.display = 'flex';
     }
 
+    // ====================
+    // 曲選択
+    // ====================
     function selectSong(index) {
         selectedSong = songs[index];
         Array.from(songList.children).forEach((btn, i) => {
@@ -124,16 +140,17 @@ document.addEventListener('DOMContentLoaded', () => {
         startGameButton.disabled = false;
     }
 
+    // ====================
+    // 難易度変更
+    // ====================
     function updateDifficulty() {
         const diff = difficultySelector.value;
-        switch (diff) {
-            case 'easy': noteSpeed = 3; break;
-            case 'normal': noteSpeed = 5; break;
-            case 'hard': noteSpeed = 8; break;
-            default: noteSpeed = 5; break;
-        }
+        noteSpeed = diff === 'easy' ? 3 : diff === 'hard' ? 8 : 5;
     }
 
+    // ====================
+    // キャンバスリサイズ
+    // ====================
     function resizeCanvas() {
         canvas.width = window.innerWidth;
         canvas.height = window.innerHeight;
@@ -148,34 +165,73 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    function bpmToInterval(bpm) {
-        return 60000 / bpm;
+    // ====================
+    // ゲーム開始
+    // ====================
+    function startGame() {
+        score = 0;
+        combo = 0;
+        maxCombo = 0;
+        notes = [];
+        judgeEffects = [];
+        tapEffects = [];
+        updateDifficulty();
+
+        bgm.src = selectedSong.file;
+        bgm.currentTime = 0;
+
+        bgVideo.src = selectedSong.mv;
+        bgVideo.currentTime = 0;
+        bgVideo.style.display = 'block';
+        bgVideo.play();
+
+        gameRunning = true;
+
+        bgm.play().then(() => {
+            startNoteSpawning();
+        }).catch(err => console.error('再生エラー:', err));
+
+        bgm.onended = () => {
+            stopGame();
+            showResult();
+        };
+
+        gameLoop();
+        showScreen('gameScreen');
     }
 
-    function spawnNote() {
-        if (!gameRunning) return;
-        const laneIndex = Math.floor(Math.random() * lanes.length);
-        notes.push({
-            x: lanes[laneIndex],
-            y: 0,
-            laneIndex,
-            hit: false,
-            judgeResult: null,
-        });
+    // ====================
+    // ゲーム停止
+    // ====================
+    function stopGame() {
+        gameRunning = false;
+        clearInterval(spawnIntervalId);
+        bgm.pause();
+        bgm.currentTime = 0;
+
+        bgVideo.pause();
+        bgVideo.currentTime = 0;
+        bgVideo.style.display = 'none';
     }
 
+    // ====================
+    // ノーツ生成
+    // ====================
     function startNoteSpawning() {
-        const interval = bpmToInterval(selectedSong.bpm);
+        const interval = 60000 / selectedSong.bpm;
         spawnIntervalId = setInterval(() => {
-            if (!gameRunning) return;
-            spawnNote();
+            if (gameRunning) spawnNote();
         }, interval);
     }
 
-    function stopNoteSpawning() {
-        clearInterval(spawnIntervalId);
+    function spawnNote() {
+        const laneIndex = Math.floor(Math.random() * lanes.length);
+        notes.push({ x: lanes[laneIndex], y: 0, laneIndex, hit: false, judgeResult: null });
     }
 
+    // ====================
+    // 判定処理
+    // ====================
     function judgeNote(key) {
         if (!gameRunning) return;
 
@@ -206,7 +262,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function handleHit(note, index, judge) {
         note.hit = true;
-        note.judgeResult = judge;
         notes.splice(index, 1);
 
         switch (judge) {
@@ -218,6 +273,19 @@ document.addEventListener('DOMContentLoaded', () => {
         if (combo > maxCombo) maxCombo = combo;
 
         judgeEffects.push({ x: note.x, y: canvas.height - 150, judge, frame: 0 });
+    }
+
+    // ====================
+    // ゲームループ
+    // ====================
+    function gameLoop() {
+        if (!gameRunning) return;
+
+        updateNotes();
+        updateJudgeEffects();
+        draw();
+
+        requestAnimationFrame(gameLoop);
     }
 
     function updateNotes() {
@@ -237,9 +305,7 @@ document.addEventListener('DOMContentLoaded', () => {
         for (let i = judgeEffects.length - 1; i >= 0; i--) {
             const e = judgeEffects[i];
             e.frame++;
-            if (e.frame > 30) {
-                judgeEffects.splice(i, 1);
-            }
+            if (e.frame > 30) judgeEffects.splice(i, 1);
         }
     }
 
@@ -301,59 +367,6 @@ document.addEventListener('DOMContentLoaded', () => {
         ctx.textAlign = 'left';
         ctx.fillText('SCORE: ' + score, 20, 40);
         ctx.fillText('COMBO: ' + combo, 20, 80);
-    }
-
-    function gameLoop() {
-        if (!gameRunning) return;
-        updateNotes();
-        updateJudgeEffects();
-        draw();
-        requestAnimationFrame(gameLoop);
-    }
-
-    function startGame() {
-        score = 0;
-        combo = 0;
-        maxCombo = 0;
-        notes = [];
-        judgeEffects = [];
-        tapEffects = [];
-        updateDifficulty();
-
-        bgm.src = selectedSong.file;
-        bgm.currentTime = 0;
-
-        bgVideo.src = selectedSong.mv;
-        bgVideo.currentTime = 0;
-        bgVideo.play();
-        bgVideo.style.display = 'block';
-
-        gameRunning = true;
-
-        bgm.play().then(() => {
-            startNoteSpawning();
-        }).catch(err => {
-            console.error('再生エラー:', err);
-        });
-
-        bgm.onended = () => {
-            stopGame();
-            showResult();
-        };
-
-        gameLoop();
-        showScreen('gameScreen');
-    }
-
-    function stopGame() {
-        gameRunning = false;
-        stopNoteSpawning();
-        bgm.pause();
-        bgm.currentTime = 0;
-
-        bgVideo.pause();
-        bgVideo.currentTime = 0;
-        bgVideo.style.display = 'none';
     }
 
     function showResult() {

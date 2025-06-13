@@ -212,36 +212,151 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         update(deltaTime) {
             this.y += noteSpeed;
-            if (this.y > canvas.height + 100 && !this.judged) {
-                // MISS判定
+            if (this.y > canvas.height + 50 && !this.judged) {
                 this.judged = true;
                 missCount++;
                 combo = 0;
+                addJudgeEffect(this.laneIndex, 'MISS');
                 playMissSound();
             }
         }
-        draw() {
-            if (this.judged) return;
+        draw(ctx) {
+            ctx.fillStyle = this.hit ? 'rgba(255,255,255,0.3)' : 'cyan';
             const lane = lanes[this.laneIndex];
-            ctx.fillStyle = 'cyan';
             ctx.fillRect(lane.x, this.y, lane.width, 20);
+            ctx.strokeStyle = 'white';
+            ctx.strokeRect(lane.x, this.y, lane.width, 20);
         }
     }
 
     // ====================
-    // 譜面生成
+    // 判定エフェクト
+    // ====================
+    class JudgeEffect {
+        constructor(laneIndex, text) {
+            this.laneIndex = laneIndex;
+            this.text = text;
+            this.alpha = 1;
+            this.y = judgeLineY - 30;
+        }
+        update(deltaTime) {
+            this.alpha -= 0.02;
+            this.y -= 0.5;
+        }
+        draw(ctx) {
+            ctx.globalAlpha = this.alpha;
+            ctx.fillStyle = getJudgeColor(this.text);
+            ctx.font = '20px Arial Black';
+            const lane = lanes[this.laneIndex];
+            ctx.fillText(this.text, lane.x + 10, this.y);
+            ctx.globalAlpha = 1;
+        }
+    }
+
+    // 判定結果の色付け
+    function getJudgeColor(judge) {
+        switch (judge) {
+            case 'PERFECT': return 'gold';
+            case 'GREAT': return 'lime';
+            case 'GOOD': return 'cyan';
+            case 'MISS': return 'red';
+            default: return 'white';
+        }
+    }
+
+    // ====================
+    // タップ音再生
+    // ====================
+    function playTapSound() {
+        tapSound.currentTime = 0;
+        tapSound.play();
+    }
+    function playPerfectSound() {
+        perfectSound.currentTime = 0;
+        perfectSound.play();
+    }
+    function playGreatSound() {
+        greatSound.currentTime = 0;
+        greatSound.play();
+    }
+    function playGoodSound() {
+        goodSound.currentTime = 0;
+        goodSound.play();
+    }
+    function playMissSound() {
+        missSound.currentTime = 0;
+        missSound.play();
+    }
+
+    // ====================
+    // 判定ラインの光演出
+    // ====================
+    function flashJudgeLine() {
+        lineGlowAlpha = 1;
+    }
+
+    // ====================
+    // 判定処理
+    // ====================
+    function judgeNote(laneIndex) {
+        for (const note of notes) {
+            if (note.laneIndex === laneIndex && !note.judged) {
+                const diff = Math.abs(note.y - judgeLineY);
+                if (diff < 10) {
+                    note.judged = true;
+                    note.hit = true;
+
+                    if (diff < 5) {
+                        score += 1000;
+                        combo++;
+                        perfectCount++;
+                        playPerfectSound();
+                        addJudgeEffect(laneIndex, 'PERFECT');
+                    } else if (diff < 8) {
+                        score += 700;
+                        combo++;
+                        greatCount++;
+                        playGreatSound();
+                        addJudgeEffect(laneIndex, 'GREAT');
+                    } else {
+                        score += 400;
+                        combo++;
+                        goodCount++;
+                        playGoodSound();
+                        addJudgeEffect(laneIndex, 'GOOD');
+                    }
+
+                    maxCombo = Math.max(maxCombo, combo);
+                    return;
+                }
+            }
+        }
+        // 判定できなかった場合MISS扱い
+        combo = 0;
+        missCount++;
+        addJudgeEffect(laneIndex, 'MISS');
+        playMissSound();
+    }
+
+    // ====================
+    // 判定エフェクト追加
+    // ====================
+    function addJudgeEffect(laneIndex, text) {
+        judgeEffects.push(new JudgeEffect(laneIndex, text));
+    }
+
+    // ====================
+    // ノーツ生成（サンプル簡易自動生成）
     // ====================
     function generateNotes() {
         notes = [];
-        // BPMから1秒あたりの拍数 = bpm/60
-        const bpm = selectedSong.bpm;
-        const beatInterval = 60000 / bpm; // ms
-        const totalDuration = 60000; // 1分譜面
-
-        for (let t = 0; t < totalDuration; t += beatInterval) {
-            // ランダムに単押しノーツを生成（同時押しなし）
+        // ノーツ間隔＝BPM基準でノーツ生成
+        // 例としてBPMに応じて約4分音符ごとにノーツ配置
+        const interval = 60000 / selectedSong.bpm;
+        const noteCount = 100;
+        for (let i = 0; i < noteCount; i++) {
             const laneIndex = Math.floor(Math.random() * lanes.length);
-            notes.push(new Note(laneIndex, t));
+            notes.push(new Note(laneIndex, i * interval));
         }
     }
 
@@ -249,13 +364,24 @@ document.addEventListener('DOMContentLoaded', () => {
     // ゲーム開始
     // ====================
     function startGame() {
-        resetGame();
-        generateNotes();
-        bgm.currentTime = 0;
-        bgVideo.currentTime = 0;
-        bgm.play();
-        bgVideo.play();
+        score = 0;
+        combo = 0;
+        maxCombo = 0;
+        perfectCount = 0;
+        greatCount = 0;
+        goodCount = 0;
+        missCount = 0;
+        judgeEffects = [];
+        notes = [];
         gameRunning = true;
+
+        generateNotes();
+
+        bgm.currentTime = 0;
+        bgm.play();
+        bgVideo.currentTime = 0;
+        bgVideo.play();
+
         showScreen('gameScreen');
     }
 
@@ -266,91 +392,12 @@ document.addEventListener('DOMContentLoaded', () => {
         gameRunning = false;
         bgm.pause();
         bgVideo.pause();
-        notes = [];
     }
 
     // ====================
-    // リセット
-    // ====================
-    function resetGame() {
-        score = 0;
-        combo = 0;
-        maxCombo = 0;
-        perfectCount = 0;
-        greatCount = 0;
-        goodCount = 0;
-        missCount = 0;
-        notes = [];
-        judgeEffects = [];
-        tapEffects = [];
-        lineGlowAlpha = 0;
-    }
-
-    // ====================
-    // ノーツ判定
-    // ====================
-    function judgeNote(laneIndex) {
-        if (!gameRunning) return;
-        const lane = lanes[laneIndex];
-        // 判定範囲上下限
-        const judgeY = judgeLineY;
-        const rangePerfect = 15;
-        const rangeGreat = 30;
-        const rangeGood = 50;
-
-        // 判定可能ノーツの中でY座標が判定ライン付近のものを探す
-        let judged = false;
-        for (const note of notes) {
-            if (note.laneIndex !== laneIndex) continue;
-            if (note.judged) continue;
-            const diff = Math.abs(note.y - judgeY);
-
-            if (diff <= rangePerfect) {
-                note.judged = true;
-                judged = true;
-                perfectCount++;
-                combo++;
-                score += 1000 + combo * 10;
-                playPerfectSound();
-                showJudgeEffect('PERFECT', lane.x, judgeY);
-                break;
-            } else if (diff <= rangeGreat) {
-                note.judged = true;
-                judged = true;
-                greatCount++;
-                combo++;
-                score += 800 + combo * 5;
-                playGreatSound();
-                showJudgeEffect('GREAT', lane.x, judgeY);
-                break;
-            } else if (diff <= rangeGood) {
-                note.judged = true;
-                judged = true;
-                goodCount++;
-                combo++;
-                score += 500;
-                playGoodSound();
-                showJudgeEffect('GOOD', lane.x, judgeY);
-                break;
-            }
-        }
-
-        if (!judged) {
-            // 判定できなかったらMISS
-            missCount++;
-            combo = 0;
-            playMissSound();
-            showJudgeEffect('MISS', lane.x, judgeY);
-        }
-
-        if (combo > maxCombo) maxCombo = combo;
-    }
-
-    // ====================
-    // タップ判定（スマホ用）
+    // タッチ判定
     // ====================
     function handleTouch(x, y) {
-        // レーンのX座標から判定
         for (let i = 0; i < lanes.length; i++) {
             const lane = lanes[i];
             if (x >= lane.x && x <= lane.x + lane.width) {
@@ -363,152 +410,113 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // ====================
-    // 判定ラインの光らせ演出
-    // ====================
-    function flashJudgeLine() {
-        lineGlowAlpha = 1.0;
-    }
-
-    // ====================
-    // 判定エフェクト表示
-    // ====================
-    function showJudgeEffect(text, x, y) {
-        judgeEffects.push({ text, x, y, alpha: 1.0 });
-    }
-
-    // ====================
-    // タップ音再生
-    // ====================
-    function playTapSound() {
-        tapSound.currentTime = 0;
-        tapSound.play();
-    }
-
-    function playPerfectSound() {
-        perfectSound.currentTime = 0;
-        perfectSound.play();
-    }
-
-    function playGreatSound() {
-        greatSound.currentTime = 0;
-        greatSound.play();
-    }
-
-    function playGoodSound() {
-        goodSound.currentTime = 0;
-        goodSound.play();
-    }
-
-    function playMissSound() {
-        missSound.currentTime = 0;
-        missSound.play();
-    }
-
-    // ====================
-    // ランク判定
-    // ====================
-    function getRank() {
-        const totalNotes = perfectCount + greatCount + goodCount + missCount;
-        if (totalNotes === 0) return 'F';
-
-        const accuracy = (perfectCount * 1.0 + greatCount * 0.8 + goodCount * 0.5) / totalNotes;
-
-        if (accuracy >= 0.95) return 'S';
-        if (accuracy >= 0.90) return 'A';
-        if (accuracy >= 0.80) return 'B';
-        if (accuracy >= 0.70) return 'C';
-        if (accuracy >= 0.60) return 'D';
-        return 'F';
-    }
-
-    // ====================
-    // リザルト画面表示
-    // ====================
-    function showResult() {
-        finalScoreDisplay.textContent = score.toString();
-        maxComboDisplay.textContent = maxCombo.toString();
-        perfectCountDisplay.textContent = perfectCount.toString();
-        greatCountDisplay.textContent = greatCount.toString();
-        goodCountDisplay.textContent = goodCount.toString();
-        missCountDisplay.textContent = missCount.toString();
-        rankDisplay.textContent = getRank();
-        showScreen('resultScreen');
-    }
-
-    // ====================
-    // キャンバスサイズ調整
-    // ====================
-    function resizeCanvas() {
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
-        judgeLineY = canvas.height - 150;
-    }
-
-    // ====================
     // メインループ
     // ====================
-    let lastTimestamp = 0;
-    function gameLoop(timestamp = 0) {
-        const deltaTime = timestamp - lastTimestamp;
-        lastTimestamp = timestamp;
+    let lastTime = 0;
+    function gameLoop(timestamp) {
+        if (!lastTime) lastTime = timestamp;
+        const deltaTime = timestamp - lastTime;
+        lastTime = timestamp;
 
         ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        // 背景描画
+        ctx.fillStyle = 'black';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        // 判定ライン位置
+        judgeLineY = canvas.height - 100;
 
         // 判定ライン光演出
         if (lineGlowAlpha > 0) {
             ctx.fillStyle = `rgba(255,255,0,${lineGlowAlpha})`;
-            ctx.fillRect(40, judgeLineY, lanes.length * 60, 10);
-            lineGlowAlpha -= 0.03;
+            ctx.fillRect(0, judgeLineY, canvas.width, 5);
+            lineGlowAlpha -= 0.05;
         } else {
-            ctx.fillStyle = 'yellow';
-            ctx.fillRect(40, judgeLineY, lanes.length * 60, 10);
+            ctx.fillStyle = 'white';
+            ctx.fillRect(0, judgeLineY, canvas.width, 5);
         }
 
         // レーン描画
         lanes.forEach(lane => {
+            ctx.fillStyle = 'gray';
+            ctx.fillRect(lane.x, 0, lane.width, canvas.height);
             ctx.strokeStyle = 'white';
-            ctx.lineWidth = 2;
             ctx.strokeRect(lane.x, 0, lane.width, canvas.height);
             ctx.fillStyle = 'white';
             ctx.font = '20px Arial';
-            ctx.fillText(lane.key, lane.x + 15, canvas.height - 100);
+            ctx.fillText(lane.key, lane.x + 15, canvas.height - 50);
         });
 
+        // ノーツ更新描画
         if (gameRunning) {
-            // ノーツ更新と描画
-            notes.forEach(note => note.update(deltaTime));
-            notes.forEach(note => note.draw());
-
-            // 判定済みで画面外のノーツを削除
-            notes = notes.filter(note => !note.judged || note.y <= canvas.height + 100);
-
-            // 判定エフェクト表示
-            judgeEffects.forEach(effect => {
-                ctx.fillStyle = `rgba(255, 255, 255, ${effect.alpha})`;
-                ctx.font = '30px Arial';
-                ctx.fillText(effect.text, effect.x, effect.y);
-                effect.alpha -= 0.02;
+            notes.forEach(note => {
+                if (!note.judged) note.update(deltaTime);
+                note.draw(ctx);
             });
-            judgeEffects = judgeEffects.filter(effect => effect.alpha > 0);
+        }
 
-            // スコアとコンボ表示
-            ctx.fillStyle = 'white';
-            ctx.font = '25px Arial';
-            ctx.fillText(`Score: ${score}`, 20, 40);
-            ctx.fillText(`Combo: ${combo}`, 20, 70);
-
-            // ゲーム終了判定（BGM終了）
-            if (bgm.ended) {
-                gameRunning = false;
-                showResult();
+        // 判定エフェクト更新描画
+        judgeEffects.forEach((effect, idx) => {
+            effect.update(deltaTime);
+            effect.draw(ctx);
+            if (effect.alpha <= 0) {
+                judgeEffects.splice(idx, 1);
             }
+        });
+
+        // スコアとコンボ表示
+        ctx.fillStyle = 'white';
+        ctx.font = '24px Arial Black';
+        ctx.fillText(`Score: ${score}`, 10, 30);
+        ctx.fillText(`Combo: ${combo}`, 10, 60);
+        ctx.fillText(`Max Combo: ${maxCombo}`, 10, 90);
+
+        // 曲終了判定
+        if (gameRunning && bgm.ended) {
+            stopGame();
+            showResult();
         }
 
         requestAnimationFrame(gameLoop);
     }
 
     // ====================
-    // 初期化呼び出し
+    // 結果表示
     // ====================
+    function showResult() {
+        finalScoreDisplay.textContent = score;
+        maxComboDisplay.textContent = maxCombo;
+        perfectCountDisplay.textContent = perfectCount;
+        greatCountDisplay.textContent = greatCount;
+        goodCountDisplay.textContent = goodCount;
+        missCountDisplay.textContent = missCount;
+
+        // ランク計算（例）
+        const accuracy = (perfectCount * 1 + greatCount * 0.8 + goodCount * 0.5) / (perfectCount + greatCount + goodCount + missCount);
+        if (accuracy > 0.9) {
+            rankDisplay.textContent = 'S';
+        } else if (accuracy > 0.8) {
+            rankDisplay.textContent = 'A';
+        } else if (accuracy > 0.7) {
+            rankDisplay.textContent = 'B';
+        } else if (accuracy > 0.6) {
+            rankDisplay.textContent = 'C';
+        } else {
+            rankDisplay.textContent = 'D';
+        }
+
+        showScreen('resultScreen');
+    }
+
+    // ====================
+    // キャンバスリサイズ
+    // ====================
+    function resizeCanvas() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight * 0.7;
+    }
+
+    // 初期化呼び出し
     init();
 });

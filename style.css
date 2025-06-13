@@ -105,7 +105,6 @@ body, html {
 #gameScreen {
     display: flex;
     flex-direction: column;
-    position: relative;
     background: black;
 }
 

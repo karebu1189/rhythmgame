@@ -43,7 +43,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let spawnIntervalId = null;
 
     const songs = [
-        { title: 'メデ', file: 'メデ.mp3', mv: 'メデ.mp4', bpm: 172 },
+        { title: 'メデ', file: 'メデ.mp3', bpm: 172, mv: 'メデ.mp4' },
         { title: 'トンデモワンダーズ', file: 'トンデモワンダーズ.mp3', bpm: 172, mv: 'tondemo.mp4' },
         { title: 'テトリス', file: 'テトリス.mp3', bpm: 170, mv: 'tetris.mp4' },
         { title: 'マーシャル・マキシマイザー', file: 'マーシャル・マキシマイザー.mp3', bpm: 135, mv: 'maximizer.mp4' },

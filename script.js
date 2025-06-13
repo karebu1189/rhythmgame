@@ -25,13 +25,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const finalScoreDisplay = document.getElementById('finalScore');
     const maxComboDisplay = document.getElementById('maxCombo');
 
-    // --- 背景動画追加 ---
     const bgVideo = document.getElementById('bgVideo');
 
-    // --- 定数 ---
     const laneKeys = ['D', 'F', 'G', 'H', 'J', 'K', 'L', ';'];
 
-    // --- ゲーム状態 ---
     let selectedSong = null;
     let lanes = [];
     let notes = [];
@@ -45,24 +42,23 @@ document.addEventListener('DOMContentLoaded', () => {
     let noteSpeed = 5;
     let spawnIntervalId = null;
 
-    // --- 曲リスト ---
     const songs = [
-        { title: 'メデ', file: 'メデ.mp3', bpm: 172 },
-        { title: 'トンデモワンダーズ', file: 'トンデモワンダーズ.mp3', bpm: 172 },
-        { title: 'テトリス', file: 'テトリス.mp3', bpm: 170 },
-        { title: 'マーシャル・マキシマイザー', file: 'マーシャル・マキシマイザー.mp3', bpm: 135 },
-        { title: 'スマイル_シンフォニー', file: 'スマイル_シンフォニー.mp3', bpm: 150 },
-        { title: 'ロストアンブレラ', file: 'ロストアンブレラ.mp3', bpm: 102 },
-        { title: 'ラビットホール', file: 'ラビットホール.mp3', bpm: 173 },
-        { title: 'ドラマツルギー', file: 'ドラマツルギー.mp3', bpm: 150 },
-        { title: 'KING', file: 'KING.mp3', bpm: 166 },
-        { title: 'ビターチョコデコレーション', file: 'ビターチョコデコレーション.mp3', bpm: 180 },
-        { title: 'ロウワー', file: 'ロウワー.mp3', bpm: 160 },
-        { title: '夜に駆ける', file: '夜に駆ける.mp3', bpm: 130 },
-        { title: 'マリーゴールド', file: 'マリーゴールド.mp3', bpm: 130 },
-        { title: 'ドライフラワー', file: 'ドライフラワー.mp3', bpm: 125 },
-        { title: '香水', file: '香水.mp3', bpm: 140 },
-        { title: 'Pretender', file: 'Pretender.mp3', bpm: 140 }
+        { title: 'メデ', file: 'メデ.mp3', bpm: 172, mv: 'mede.mp4' },
+        { title: 'トンデモワンダーズ', file: 'トンデモワンダーズ.mp3', bpm: 172, mv: 'tondemo.mp4' },
+        { title: 'テトリス', file: 'テトリス.mp3', bpm: 170, mv: 'tetris.mp4' },
+        { title: 'マーシャル・マキシマイザー', file: 'マーシャル・マキシマイザー.mp3', bpm: 135, mv: 'maximizer.mp4' },
+        { title: 'スマイル_シンフォニー', file: 'スマイル_シンフォニー.mp3', bpm: 150, mv: 'smile.mp4' },
+        { title: 'ロストアンブレラ', file: 'ロストアンブレラ.mp3', bpm: 102, mv: 'umbrella.mp4' },
+        { title: 'ラビットホール', file: 'ラビットホール.mp3', bpm: 173, mv: 'rabbit.mp4' },
+        { title: 'ドラマツルギー', file: 'ドラマツルギー.mp3', bpm: 150, mv: 'drama.mp4' },
+        { title: 'KING', file: 'KING.mp3', bpm: 166, mv: 'king.mp4' },
+        { title: 'ビターチョコデコレーション', file: 'ビターチョコデコレーション.mp3', bpm: 180, mv: 'choco.mp4' },
+        { title: 'ロウワー', file: 'ロウワー.mp3', bpm: 160, mv: 'lower.mp4' },
+        { title: '夜に駆ける', file: '夜に駆ける.mp3', bpm: 130, mv: 'yoru.mp4' },
+        { title: 'マリーゴールド', file: 'マリーゴールド.mp3', bpm: 130, mv: 'marigold.mp4' },
+        { title: 'ドライフラワー', file: 'ドライフラワー.mp3', bpm: 125, mv: 'dryflower.mp4' },
+        { title: '香水', file: '香水.mp3', bpm: 140, mv: 'perfume.mp4' },
+        { title: 'Pretender', file: 'Pretender.mp3', bpm: 140, mv: 'pretender.mp4' }
     ];
 
     function init() {
@@ -316,39 +312,38 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function startGame() {
-    score = 0;
-    combo = 0;
-    maxCombo = 0;
-    notes = [];
-    judgeEffects = [];
-    tapEffects = [];
-    updateDifficulty();
+        score = 0;
+        combo = 0;
+        maxCombo = 0;
+        notes = [];
+        judgeEffects = [];
+        tapEffects = [];
+        updateDifficulty();
 
-    bgm.src = selectedSong.file;
-    bgm.currentTime = 0;
+        bgm.src = selectedSong.file;
+        bgm.currentTime = 0;
 
-    // 背景動画再生処理
-    bgVideo.currentTime = 0;
-    bgVideo.play();
-    bgVideo.style.display = 'block';
+        bgVideo.src = selectedSong.mv;
+        bgVideo.currentTime = 0;
+        bgVideo.play();
+        bgVideo.style.display = 'block';
 
-    gameRunning = true;
+        gameRunning = true;
 
-    bgm.play().then(() => {
-        startNoteSpawning();
-    }).catch(err => {
-        console.error('再生エラー:', err);
-    });
+        bgm.play().then(() => {
+            startNoteSpawning();
+        }).catch(err => {
+            console.error('再生エラー:', err);
+        });
 
-    bgm.onended = () => {
-        stopGame();
-        showResult();
-    };
+        bgm.onended = () => {
+            stopGame();
+            showResult();
+        };
 
-    gameLoop();
-    showScreen('gameScreen');
-}
-
+        gameLoop();
+        showScreen('gameScreen');
+    }
 
     function stopGame() {
         gameRunning = false;
@@ -356,7 +351,6 @@ document.addEventListener('DOMContentLoaded', () => {
         bgm.pause();
         bgm.currentTime = 0;
 
-        // 背景動画停止処理
         bgVideo.pause();
         bgVideo.currentTime = 0;
         bgVideo.style.display = 'none';

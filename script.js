@@ -116,25 +116,13 @@ document.addEventListener('DOMContentLoaded', () => {
         else if (screenId === 'resultScreen') resultScreen.style.display = 'flex';
     }
 
-    function selectSong(i) {
-    // 選択した曲をセット
-    selectedSong = songs[i];
-
-    // すべての曲を一度非選択に
-    document.querySelectorAll('.songItem').forEach(item => item.classList.remove('selected'));
-
-    // 今回選んだ曲に selected クラスを付ける
-    document.querySelectorAll('.songItem')[i].classList.add('selected');
-
-    // スタートボタンを有効にする
-    document.getElementById('startGameButton').disabled = false;
-
-    // ★MVを切り替える
-    const bgVideo = document.getElementById('bgVideo');
-    bgVideo.querySelector('source').src = selectedSong.mv;
-    bgVideo.load(); // ソースを切り替えたら再読み込みが必要
-}
-
+    function selectSong(index) {
+        selectedSong = songs[index];
+        Array.from(songList.children).forEach((btn, i) => {
+            btn.classList.toggle('selected', i === index);
+        });
+        startGameButton.disabled = false;
+    }
 
     function updateDifficulty() {
         const diff = difficultySelector.value;

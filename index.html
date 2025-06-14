@@ -6,13 +6,162 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>リズムゲーム</title>
     <style>
-        /* （略、元のCSSと同じ） */
+        /* シンプルな画面切替とレイアウト */
+        body,
+        html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            background: #111;
+            color: white;
+            font-family: Arial, sans-serif;
+            user-select: none;
+        }
+
+        .screen {
+            display: none;
+            height: 100vh;
+            width: 100vw;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+
+        #titleScreen {
+            display: flex;
+        }
+
+        .phone-frame {
+            background: #222;
+            padding: 20px;
+            border-radius: 10px;
+            width: 90vw;
+            max-width: 400px;
+            text-align: center;
+        }
+
+        .game-title {
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+
+        .select-box {
+            font-size: 1.2rem;
+            padding: 6px;
+            margin: 10px 0;
+            width: 100%;
+        }
+
+        .song-list {
+            max-height: 300px;
+            overflow-y: auto;
+            margin: 10px 0;
+            text-align: left;
+        }
+
+        .songItem {
+            padding: 6px 10px;
+            cursor: pointer;
+            border-bottom: 1px solid #444;
+            color: white;
+            background: transparent;
+            border: none;
+            width: 100%;
+            text-align: left;
+            font-size: 1rem;
+        }
+
+        .songItem.selected {
+            background-color: #f90;
+            color: black;
+            font-weight: bold;
+        }
+
+        .start-button,
+        .control-button {
+            background-color: #ff6;
+            border: none;
+            padding: 12px 20px;
+            font-size: 1.2rem;
+            margin: 10px 5px;
+            cursor: pointer;
+            border-radius: 6px;
+            user-select: none;
+        }
+
+        #gameScreen {
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            background: black;
+        }
+
+        #gameCanvas {
+            flex-grow: 1;
+            display: block;
+            background: #222;
+            width: 100vw;
+            height: 100vh;
+        }
+
+        .game-buttons {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+        }
+
+        #resultScreen {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            background: #111;
+        }
+
+        .result-frame {
+            background: #222;
+            padding: 30px;
+            border-radius: 12px;
+            text-align: center;
+            min-width: 250px;
+        }
+
+        .result-score {
+            font-size: 1.8rem;
+            margin-bottom: 12px;
+        }
+
+        .result-rank {
+            font-size: 2.4rem;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+
+        .rank-SS {
+            color: gold;
+        }
+
+        .rank-S {
+            color: silver;
+        }
+
+        .rank-A {
+            color: deepskyblue;
+        }
+
+        .rank-B {
+            color: lightgreen;
+        }
+
+        .rank-C {
+            color: gray;
+        }
     </style>
 </head>
 
 <body>
     <!-- タイトル画面 -->
-    <div id="titleScreen" class="screen" style="display:flex;">
+    <div id="titleScreen" class="screen">
         <div class="phone-frame">
             <h1 class="game-title">プロセカ風リズムゲーム</h1>
 
@@ -28,20 +177,21 @@
         </div>
     </div>
 
-    <!-- ゲーム画面 -->
-    <div id="gameScreen" class="screen">
-        <video id="bgVideo" autoplay loop muted
-            style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; z-index: -1; display: none;">
-            <source src="bg.mp4" type="video/mp4" />
-        </video>
+   <!-- ゲーム画面 -->
+<div id="gameScreen" class="screen">
+    <video id="bgVideo" autoplay loop muted
+        style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; z-index: -1; display: none;">
+        <source src="bg.mp4" type="video/mp4" />
+    </video>
 
-        <canvas id="gameCanvas"></canvas>
+    <canvas id="gameCanvas"></canvas>
 
-        <div class="game-buttons">
-            <button id="retryButton" class="control-button">Retry</button>
-            <button id="backButton" class="control-button">Back to Title</button>
-        </div>
+    <div class="game-buttons">
+        <button id="retryButton" class="control-button">Retry</button>
+        <button id="backButton" class="control-button">Back to Title</button>
     </div>
+</div>
+
 
     <!-- リザルト画面 -->
     <div id="resultScreen" class="screen">
@@ -61,6 +211,12 @@
     <audio id="greatSound" src="great.mp3" preload="auto"></audio>
     <audio id="goodSound" src="good.mp3" preload="auto"></audio>
     <audio id="missSound" src="miss.mp3" preload="auto"></audio>
+
+    <!-- 背景動画 -->
+    <video id="bgVideo" autoplay loop muted
+        style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; z-index: -1; display: none;">
+        <source src="bg.mp4" type="video/mp4" />
+    </video>
 
     <!-- メインスクリプト -->
     <script src="script.js"></script>

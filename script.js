@@ -154,17 +154,21 @@ document.addEventListener('DOMContentLoaded', () => {
     // ====================
     // 曲選択
     // ====================
-    function selectSong(index) {
-        selectedSong = songs[index];
-        // mv更新
-        bgVideo.src = selectedSong.mv;
-        bgVideo.load();
-        // BGM準備
-        bgm.src = selectedSong.file;
-        bgm.load();
-        updateDifficulty();
-    }
+   function selectSong(index) {
+    selectedSong = songs[index];
+    bgVideo.src = selectedSong.mv;
+    bgVideo.load();
+    bgm.src = selectedSong.file;
+    bgm.load();
 
+    updateDifficulty();
+
+    const startGameButton = document.getElementById('startGameButton');
+    if (startGameButton) {
+        startGameButton.disabled = false;
+    }
+}
+ 
     // ====================
     // 難易度切替
     // ====================

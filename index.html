@@ -163,7 +163,7 @@
     <!-- タイトル画面 -->
     <div id="titleScreen" class="screen">
         <div class="phone-frame">
-            <h1 class="game-title">リズムゲーム</h1>
+            <h1 class="game-title">プロセカ風リズムゲーム</h1>
 
             <select id="difficultySelector" class="select-box">
                 <option value="easy">Easy</option>
@@ -177,21 +177,15 @@
         </div>
     </div>
 
-   <!-- ゲーム画面 -->
-<div id="gameScreen" class="screen">
-    <video id="bgVideo" autoplay loop muted
-        style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; z-index: -1; display: none;">
-        <source src="bg.mp4" type="video/mp4" />
-    </video>
+    <!-- ゲーム画面 -->
+    <div id="gameScreen" class="screen">
+        <canvas id="gameCanvas"></canvas>
 
-    <canvas id="gameCanvas"></canvas>
-
-    <div class="game-buttons">
-        <button id="retryButton" class="control-button">Retry</button>
-        <button id="backButton" class="control-button">Back to Title</button>
+        <div class="game-buttons">
+            <button id="retryButton" class="control-button">Retry</button>
+            <button id="backButton" class="control-button">Back to Title</button>
+        </div>
     </div>
-</div>
-
 
     <!-- リザルト画面 -->
     <div id="resultScreen" class="screen">
